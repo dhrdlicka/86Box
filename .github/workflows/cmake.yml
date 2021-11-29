@@ -47,12 +47,16 @@ jobs:
         environment:
           - msystem: MINGW32
             prefix: mingw-w64-i686
+            toolchain: cmake/flags-gcc-i686.cmake
           - msystem: MINGW64
             prefix: mingw-w64-x86_64
+            toolchain: cmake/flags-gcc-x86_64.cmake
           - msystem: UCRT64
             prefix: mingw-w64-ucrt-x86_64
+            toolchain: cmake/flags-gcc-x86_64.cmake
           - msystem: CLANG64
             prefix: mingw-w64-clang-x86_64
+            toolchain: cmake/flags-gcc-x86_64.cmake
 
     steps:
     - uses: msys2/setup-msys2@v2
@@ -75,8 +79,9 @@ jobs:
     - uses: actions/checkout@v2
     - name: Configure CMake
       run: >-
-        cmake -S . -B build
+        cmake -S . -B build -G "MSYS Makefiles"
         --preset ${{ matrix.build.preset }}
+        -D CMAKE_TOOLCHAIN_FILE=${{ matrix.environment.toolchain }}
         -D CMAKE_INSTALL_PREFIX=./build/artifacts
         -D VNC=OFF
     - name: Build
