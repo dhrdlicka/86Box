@@ -23,7 +23,7 @@ on:
 
 jobs:
   mingw:
-    name: MSYS2 ${{ matrix.build.name }} build (${{ matrix.environment.msystem }})
+    name: Windows MSYS2 (${{ matrix.build.name }} ${{ matrix.target.name }})
 
     runs-on: windows-latest
 
@@ -44,18 +44,14 @@ jobs:
         - name: Dev
           preset: experimental
           target: install
-        environment:
-          - msystem: MINGW32
+        target:
+        - name: x86
+          msystem: MINGW32
             prefix: mingw-w64-i686
             toolchain: cmake/flags-gcc-i686.cmake
-          - msystem: MINGW64
+        - name: x64
+          msystem: MINGW64
             prefix: mingw-w64-x86_64
-            toolchain: cmake/flags-gcc-x86_64.cmake
-          - msystem: UCRT64
-            prefix: mingw-w64-ucrt-x86_64
-            toolchain: cmake/flags-gcc-x86_64.cmake
-          - msystem: CLANG64
-            prefix: mingw-w64-clang-x86_64
             toolchain: cmake/flags-gcc-x86_64.cmake
 
     steps:
@@ -63,32 +59,32 @@ jobs:
       with:
         path-type: inherit
         update: true
-        msystem: ${{ matrix.environment.msystem }}
+        msystem: ${{ matrix.target.msystem }}
         install: >-
-          ${{ matrix.environment.prefix }}-ninja
-          ${{ matrix.environment.prefix }}-gcc
-          ${{ matrix.environment.prefix }}-clang
-          ${{ matrix.environment.prefix }}-pkg-config
-          ${{ matrix.environment.prefix }}-openal
-          ${{ matrix.environment.prefix }}-freetype
-          ${{ matrix.environment.prefix }}-SDL2
-          ${{ matrix.environment.prefix }}-zlib
-          ${{ matrix.environment.prefix }}-libpng
-          ${{ matrix.environment.prefix }}-libvncserver
-          ${{ matrix.environment.prefix }}-rtmidi
+          ${{ matrix.target.prefix }}-ninja
+          ${{ matrix.target.prefix }}-gcc
+          ${{ matrix.target.prefix }}-clang
+          ${{ matrix.target.prefix }}-pkg-config
+          ${{ matrix.target.prefix }}-openal
+          ${{ matrix.target.prefix }}-freetype
+          ${{ matrix.target.prefix }}-SDL2
+          ${{ matrix.target.prefix }}-zlib
+          ${{ matrix.target.prefix }}-libpng
+          ${{ matrix.target.prefix }}-libvncserver
+          ${{ matrix.target.prefix }}-rtmidi
     - uses: actions/checkout@v2
     - name: Configure CMake
       run: >-
         cmake -S . -B build -G "MSYS Makefiles"
         --preset ${{ matrix.build.preset }}
-        -D CMAKE_TOOLCHAIN_FILE=${{ matrix.environment.toolchain }}
+        -D CMAKE_TOOLCHAIN_FILE=${{ matrix.target.toolchain }}
         -D CMAKE_INSTALL_PREFIX=./build/artifacts
         -D VNC=OFF
     - name: Build
       run: cmake --build build --target ${{ matrix.build.target }}
     - uses: actions/upload-artifact@v2
       with:
-        name: '86Box-${{ matrix.build.name }}-MSYS2-${{ matrix.environment.msystem }}-${{ github.sha }}'
+        name: '86Box-${{ matrix.build.name }}-MSYS2-${{ matrix.target.name }}-${{ github.sha }}'
         path: build/artifacts/bin/**
 
   vs2019:
