@@ -23,13 +23,10 @@ add_library(ui OBJECT win_ui.c win_icon.c win_stbar.c win_sdl.c win_dialog.c win
 	win_jsconf.c win_media_menu.c win_preferences.c win_discord.c glad.c win_opengl.c
 	win_opengl_glslp.c 86Box.rc)
 
-if(MSVC)
-	# MSVC complains when we include the manifest from 86Box.rc...
-	# On the bright side, CMake supports passing the manifest as a source
-	# file when using MSVC, so we might just as well do that!
-	target_compile_definitions(ui PRIVATE NO_INCLUDE_MANIFEST)
-	target_sources(86Box PRIVATE 86Box.manifest)
+target_sources(86Box PRIVATE 86Box.manifest)
+set_property(SOURCE 86Box.rc PROPERTY COMPILE_DEFINITIONS NO_INCLUDE_MANIFEST)
 
+if(MSVC)
 	# Append null to resource strings (fixes file dialogs)
 	set_property(SOURCE 86Box.rc PROPERTY COMPILE_FLAGS -n)
 endif()
