@@ -47,12 +47,12 @@ jobs:
         target:
         - name: x86
           msystem: MINGW32
-            prefix: mingw-w64-i686
-            toolchain: cmake/flags-gcc-i686.cmake
+          prefix: mingw-w64-i686
+          toolchain: cmake/flags-gcc-i686.cmake
         - name: x64
           msystem: MINGW64
-            prefix: mingw-w64-x86_64
-            toolchain: cmake/flags-gcc-x86_64.cmake
+          prefix: mingw-w64-x86_64
+          toolchain: cmake/flags-gcc-x86_64.cmake
 
     steps:
     - uses: msys2/setup-msys2@v2
@@ -87,50 +87,73 @@ jobs:
         name: '86Box-${{ matrix.build.name }}-MSYS2-${{ matrix.target.name }}-${{ github.sha }}'
         path: build/artifacts/bin/**
 
-  vs2019:
-    name: VS2019 ${{ matrix.build.name }} ${{ matrix.target-arch }} build (${{ matrix.toolset }})
+  llvm-windows:
+    name: "Windows vcpkg/LLVM (${{ matrix.build.name }} ${{ matrix.target.name }})"
 
-    runs-on: windows-latest
+    runs-on: windows-2022
 
     strategy:
       fail-fast: false
       matrix:
         build:
+        - name: Regular
+          preset: regular
+          target: install/strip
         - name: Debug
-          dev-build: off
-          new-dynarec: off
-          type: Debug
+          preset: debug
+          target: install
         - name: Dev
-          dev-build: on
-          new-dynarec: on
-          type: Debug
-        target-arch: ['Win32', 'x64', 'ARM64']
-        toolset: ['clangcl']
-        exclude:
-          - target-arch: 'ARM64'
-            build:
-              new-dynarec: off
+          preset: experimental
+          target: install
+        target:
+        - name: x86
+          triplet: x86-windows-static
+          toolchain: cmake/flags-gcc-i686.cmake
+          vcvars: vcvars32.bat
+        - name: x64
+          triplet: x64-windows-static
+          toolchain: cmake/flags-gcc-x86_64.cmake
+          vcvars: vcvars64.bat
 
     steps:
     - uses: actions/checkout@v2
+    - name: Download Ninja
+      run: Invoke-WebRequest https://github.com/ninja-build/ninja/releases/download/v1.10.2/ninja-win.zip -OutFile ninja-win.zip && Expand-Archive ninja-win.zip -DestinationPath .
     - uses: actions/cache@v2
       with:
-        path: build/vcpkg_installed
-        key: vcpkg-${{ hashFiles('vcpkg.json') }}-${{ matrix.target-arch }}
+        path: |
+          ./vcpkg_installed
+          ${{ env.LOCALAPPDATA }}/vcpkg/archives
+          ${{ env.APPDATA }}/vcpkg/archives
+        key: vcpkg-cache-${{ hashFiles('vcpkg.json') }}
+    - name: Restore vcpkg dependencies
+      run: C:/vcpkg/vcpkg install --triplet ${{ matrix.target.triplet }}
     - name: Configure CMake
-      run: >-
-        cmake -S . -B build
-        -G "Visual Studio 16 2019" -A ${{ matrix.target-arch }} -T ${{ matrix.toolset }}
-        -D CMAKE_TOOLCHAIN_FILE=C:\vcpkg\scripts\buildsystems\vcpkg.cmake
+      run: >
+        call "C:/Program Files/Microsoft Visual Studio/2022/Enterprise/VC/Auxiliary/Build/${{ matrix.target.vcvars }}"
+  
+        set PATH=C:/Program Files/LLVM/bin;%PATH%
+
+        set CC=clang.exe
+
+        set CXX=clang++.exe
+
+        set RC=rc.exe
+
+        cmake -S . -B build -G Ninja --preset ${{ matrix.build.preset }}
+        -D CMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake
         -D CMAKE_INSTALL_PREFIX=./build/artifacts
-        -D DEV_BRANCH=${{ matrix.build.dev-build }}
-        -D NEW_DYNAREC=${{ matrix.build.new-dynarec }}
-        -D VNC=OFF
+        -D VCPKG_CHAINLOAD_TOOLCHAIN_FILE=${{ github.workspace }}/${{ matrix.target.toolchain }}
+        -D VCPKG_TARGET_TRIPLET=${{ matrix.target.triplet }}
+      shell: cmd
     - name: Build
-      run: cmake --build build --config ${{ matrix.build.type }} --target install
+      run: |
+        call "C:/Program Files/Microsoft Visual Studio/2022/Enterprise/VC/Auxiliary/Build/${{ matrix.target.vcvars }}"
+        cmake --build build --target ${{ matrix.build.target }}
+      shell: cmd
     - uses: actions/upload-artifact@v2
       with:
-        name: '86Box-${{ matrix.build.name }}-VS2019-${{ matrix.target-arch }}-${{ matrix.toolset }}-${{ github.sha }}'
+        name: '86Box-${{ matrix.build.name }}-Win32-LLVM-${{ matrix.target.name }}-${{ github.sha }}'
         path: build/artifacts/bin/**
 
   linux:
@@ -151,16 +174,16 @@ jobs:
           target: install
 
     steps:
-      - uses: actions/checkout@v2
-      - name: Install dependencies
-        run: sudo apt update && sudo apt install gcc-11 g++-11 libfreetype-dev libsdl2-dev libpng-dev libopenal-dev libc6-dev librtmidi-dev
-      - name: Configure CMake
-        run: >-
+    - uses: actions/checkout@v2
+    - name: Install dependencies
+      run: sudo apt update && sudo apt install gcc-11 g++-11 libfreetype-dev libsdl2-dev libpng-dev libopenal-dev libc6-dev librtmidi-dev
+    - name: Configure CMake
+      run: >-
         cmake -S . -B build --preset ${{ matrix.build.preset }}
-          -D CMAKE_INSTALL_PREFIX=./build/artifacts
+        -D CMAKE_INSTALL_PREFIX=./build/artifacts
         -D CMAKE_TOOLCHAIN_FILE=./cmake/flags-gcc-i686.cmake
-          -D CMAKE_C_COMPILER=gcc-11 -D CMAKE_CXX_COMPILER=g++-11
-      - name: Build
+        -D CMAKE_C_COMPILER=gcc-11 -D CMAKE_CXX_COMPILER=g++-11
+    - name: Build
       run: cmake --build build --target ${{ matrix.build.target }}
     - uses: actions/upload-artifact@v2
       with:
@@ -185,15 +208,15 @@ jobs:
           target: install
 
     steps:
-      - uses: actions/checkout@v2
-      - name: Install dependencies
-        run: brew install freetype sdl2 libpng openal-soft rtmidi
-      - name: Configure CMake
-        run: >-
+    - uses: actions/checkout@v2
+    - name: Install dependencies
+      run: brew install freetype sdl2 libpng openal-soft rtmidi
+    - name: Configure CMake
+      run: >-
         cmake -S . -B build --preset ${{ matrix.build.preset }}
-          -D CMAKE_INSTALL_PREFIX=./build/artifacts
+        -D CMAKE_INSTALL_PREFIX=./build/artifacts
         -D CMAKE_TOOLCHAIN_FILE=./cmake/flags-gcc-i686.cmake
-      - name: Build
+    - name: Build
       run: cmake --build build --target ${{ matrix.build.target }}
     - uses: actions/upload-artifact@v2
       with:
