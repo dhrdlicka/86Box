@@ -181,7 +181,7 @@ jobs:
       run: >-
         cmake -S . -B build --preset ${{ matrix.build.preset }}
         -D CMAKE_INSTALL_PREFIX=./build/artifacts
-        -D CMAKE_TOOLCHAIN_FILE=./cmake/flags-gcc-i686.cmake
+        -D CMAKE_TOOLCHAIN_FILE=./cmake/flags-gcc-x86_64.cmake
         -D CMAKE_C_COMPILER=gcc-11 -D CMAKE_CXX_COMPILER=g++-11
     - name: Build
       run: cmake --build build --target ${{ matrix.build.target }}
@@ -215,7 +215,7 @@ jobs:
       run: >-
         cmake -S . -B build --preset ${{ matrix.build.preset }}
         -D CMAKE_INSTALL_PREFIX=./build/artifacts
-        -D CMAKE_TOOLCHAIN_FILE=./cmake/flags-gcc-i686.cmake
+        -D CMAKE_TOOLCHAIN_FILE=./cmake/flags-gcc-x86_64.cmake
     - name: Build
       run: cmake --build build --target ${{ matrix.build.target }}
     - uses: actions/upload-artifact@v2
