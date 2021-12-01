@@ -88,32 +88,32 @@ jobs:
         path: build/artifacts/bin/**
 
   llvm-windows:
-    name: "Windows vcpkg/LLVM (${{ matrix.build.name }} ${{ matrix.target.name }})"
+    name: "Windows vcpkg/LLVM (${{ matrix.preset }} ${{ matrix.target.name }})"
 
     runs-on: windows-2022
 
     strategy:
       fail-fast: false
       matrix:
-        build:
-        - name: Regular
-          preset: regular
-          target: install/strip
-        - name: Debug
-          preset: debug
-          target: install
-        - name: Dev
-          preset: experimental
-          target: install
+        preset: [regular, debug, experimental]
         target:
         - name: x86
           triplet: x86-windows-static
           toolchain: cmake/flags-gcc-i686.cmake
-          vcvars: vcvars32.bat
+          vcvars: x64_x86
         - name: x64
           triplet: x64-windows-static
           toolchain: cmake/flags-gcc-x86_64.cmake
-          vcvars: vcvars64.bat
+          vcvars: x64
+        include:
+        - preset: regular
+          strip: --strip
+        - preset: experimental
+          target:
+            name: ARM64
+            triplet: arm64-windows-static
+            toolchain: cmake/llvm-win32-arm64.cmake
+            vcvars: x64_arm64
 
     steps:
     - uses: actions/checkout@v2
@@ -130,7 +130,7 @@ jobs:
       run: C:/vcpkg/vcpkg install --triplet ${{ matrix.target.triplet }}
     - name: Configure CMake
       run: >
-        call "C:/Program Files/Microsoft Visual Studio/2022/Enterprise/VC/Auxiliary/Build/${{ matrix.target.vcvars }}"
+        call "C:/Program Files/Microsoft Visual Studio/2022/Enterprise/VC/Auxiliary/Build/vcvarsall.bat" ${{ matrix.target.vcvars }}
   
         set PATH=C:/Program Files/LLVM/bin;%PATH%
 
@@ -140,20 +140,21 @@ jobs:
 
         set RC=rc.exe
 
-        cmake -S . -B build -G Ninja --preset ${{ matrix.build.preset }}
+        cmake -S . -B build -G Ninja --preset ${{ matrix.preset }}
         -D CMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake
-        -D CMAKE_INSTALL_PREFIX=./build/artifacts
         -D VCPKG_CHAINLOAD_TOOLCHAIN_FILE=${{ github.workspace }}/${{ matrix.target.toolchain }}
         -D VCPKG_TARGET_TRIPLET=${{ matrix.target.triplet }}
       shell: cmd
     - name: Build
       run: |
-        call "C:/Program Files/Microsoft Visual Studio/2022/Enterprise/VC/Auxiliary/Build/${{ matrix.target.vcvars }}"
-        cmake --build build --target ${{ matrix.build.target }}
+        call "C:/Program Files/Microsoft Visual Studio/2022/Enterprise/VC/Auxiliary/Build/vcvarsall.bat" ${{ matrix.target.vcvars }}
+        cmake --build build
       shell: cmd
+    - name: Generate package
+      run: cmake --install build --prefix ./build/artifacts ${{ matrix.strip }}
     - uses: actions/upload-artifact@v2
       with:
-        name: '86Box-${{ matrix.build.name }}-Win32-LLVM-${{ matrix.target.name }}-${{ github.sha }}'
+        name: '86Box-${{ matrix.preset }}-Win32-LLVM-${{ matrix.target.name }}-gha${{ github.run_number }}'
         path: build/artifacts/bin/**
 
   linux:
