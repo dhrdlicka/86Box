@@ -117,11 +117,9 @@ jobs:
       run: Invoke-WebRequest https://github.com/ninja-build/ninja/releases/download/v1.10.2/ninja-win.zip -OutFile ninja-win.zip && Expand-Archive ninja-win.zip -DestinationPath .
     - uses: actions/cache@v2
       with:
-        path: |
-          ./vcpkg_installed
-          ${{ env.LOCALAPPDATA }}/vcpkg/archives
-          ${{ env.APPDATA }}/vcpkg/archives
-        key: vcpkg-cache-${{ hashFiles('vcpkg.json') }}
+        path: C:/Users/runneradmin/AppData/Local/vcpkg/archives
+        key: vcpkg-${{ matrix.target.triplet }}-${{ github.sha }}
+        restore-keys: vcpkg-${{ matrix.target.triplet }}-
     - name: Restore vcpkg dependencies
       run: C:/vcpkg/vcpkg install --triplet ${{ matrix.target.triplet }}
     - name: Configure CMake
