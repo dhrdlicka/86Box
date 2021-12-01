@@ -14,6 +14,7 @@ endif()
 
 target_sources(86Box PRIVATE ${APP_ICON_MACOSX})
 set_source_files_properties(${APP_ICON_MACOSX}
+	TARGET_DIRECTORY 86Box
 	PROPERTIES MACOSX_PACKAGE_LOCATION "Resources")
 
 if(EMU_BUILD)
