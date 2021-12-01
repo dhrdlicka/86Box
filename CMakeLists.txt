@@ -56,62 +56,78 @@ endif()
 
 set(CMAKE_CXX_STANDARD 11)
 
-option(RELEASE "Release build" OFF)
-option(USB "USB support" OFF)
-option(DYNAREC "Dynamic recompiler" ON)
-option(FLUIDSYNTH "FluidSynth" ON)
-option(MUNT "MUNT" ON)
-option(VRAMDUMP "Video RAM dumping" OFF)
-option(DINPUT "DirectInput" OFF)
-option(DISCORD "Discord integration" ON)
-option(QT "QT GUI" ON)
+# Optional features
+#
+#      Option		Description							Def.
+#      ------		-----------							----
+option(RELEASE		"Release build"							OFF)
+option(USB		"USB support"							OFF)
+option(DYNAREC		"Dynamic recompiler"						ON)
+option(FLUIDSYNTH	"FluidSynth"							ON)
+option(MUNT		"MUNT"								ON)
+option(VRAMDUMP		"Video RAM dumping"						OFF)
+option(DINPUT		"DirectInput"							OFF)
+option(DISCORD		"Discord integration"						ON)
+option(QT		"QT GUI"							ON)
+option(NEW_DYNAREC	"Use the PCem v15 (\"new\") dynamic recompiler"			OFF)
+option(MINITRACE	"Enable Chrome tracing using the modified minitrace library"	OFF)
+option(DEV_BRANCH	"Development branch"						OFF)
 
-option(NEW_DYNAREC "Use the PCem v15 (\"new\") dynamic recompiler" OFF)
+# Development branch features
+#
+#                      Option		Description					Def.	Condition	Otherwise
+#                      ------		-----------					----	---------	---------
+cmake_dependent_option(AMD_K5		"AMD K5"					ON	"DEV_BRANCH"	OFF)
+cmake_dependent_option(CYRIX_6X86	"Cyrix 6x86"					ON	"DEV_BRANCH"	OFF)
+cmake_dependent_option(GUSMAX		"Gravis UltraSound MAX"				ON	"DEV_BRANCH"	OFF)
+cmake_dependent_option(HEDAKA		"Hedaka HED-919"				ON	"DEV_BRANCH"	OFF)
+cmake_dependent_option(I450KX		"Intel i450KX"					ON	"DEV_BRANCH"	OFF)
+cmake_dependent_option(LASERXT		"VTech Laser XT"				ON	"DEV_BRANCH"	OFF)
+cmake_dependent_option(MGA		"Matrox Mystique graphics adapters"		ON	"DEV_BRANCH"	OFF)
+cmake_dependent_option(NO_SIO		"Machines without emulated Super I/O chips"	ON	"DEV_BRANCH"	OFF)
+cmake_dependent_option(OLIVETTI		"Olivetti M290"					ON	"DEV_BRANCH"	OFF)
+cmake_dependent_option(OPEN_AT		"OpenAT"					ON	"DEV_BRANCH"	OFF)
+cmake_dependent_option(OPENGL		"OpenGL 3.0 Core renderer"			ON	"DEV_BRANCH"	OFF)
+cmake_dependent_option(PAS16		"Pro Audio Spectrum 16"				OFF	"DEV_BRANCH"	OFF)
+cmake_dependent_option(PS2M70T4		"IBM PS/2 model 70 (type 4)"			ON	"DEV_BRANCH"	OFF)
+cmake_dependent_option(S3TRIO3D2X	"S3 Trio3D/2X"					ON	"DEV_BRANCH"	OFF)
+cmake_dependent_option(SIO_DETECT	"Super I/O Detection Helper"			ON	"DEV_BRANCH"	OFF)
+cmake_dependent_option(M154X		"ALi ALADDiN IV"				ON	"DEV_BRANCH"	OFF)
+cmake_dependent_option(M6117		"ALi M6117"					ON	"DEV_BRANCH"	OFF)
+cmake_dependent_option(VGAWONDER	"ATI VGA Wonder (ATI-18800)"			ON	"DEV_BRANCH"	OFF)
+cmake_dependent_option(VNC		"VNC renderer"					OFF	"DEV_BRANCH"	OFF)
+cmake_dependent_option(XL24		"ATI VGA Wonder XL24 (ATI-28800-6)"		ON 	"DEV_BRANCH"	OFF)
+cmake_dependent_option(VECT486VL	"HP Vectra 486VL"				ON	"DEV_BRANCH"	OFF)
 
-option(MINITRACE "Enable Chrome tracing using the modified minitrace library" OFF)
-
-option(DEV_BRANCH "Development branch" OFF)
-CMAKE_DEPENDENT_OPTION(AMD_K5 "AMD K5" ON "DEV_BRANCH" OFF)
-CMAKE_DEPENDENT_OPTION(CYRIX_6X86 "Cyrix 6x86" ON "DEV_BRANCH" OFF)
-CMAKE_DEPENDENT_OPTION(GUSMAX "Gravis UltraSound MAX" ON "DEV_BRANCH" OFF)
-CMAKE_DEPENDENT_OPTION(HEDAKA "Hedaka HED-919" ON "DEV_BRANCH" OFF)
-CMAKE_DEPENDENT_OPTION(I450KX "Intel i450KX" ON "DEV_BRANCH" OFF)
-CMAKE_DEPENDENT_OPTION(LASERXT "VTech Laser XT" ON "DEV_BRANCH" OFF)
-CMAKE_DEPENDENT_OPTION(MGA "Matrox Mystique graphics adapters" ON "DEV_BRANCH" OFF)
-CMAKE_DEPENDENT_OPTION(NO_SIO "Machines without emulated Super I/O chips" ON "DEV_BRANCH" OFF)
-CMAKE_DEPENDENT_OPTION(OLIVETTI "Olivetti M290" ON "DEV_BRANCH" OFF)
-CMAKE_DEPENDENT_OPTION(OPEN_AT "OpenAT" ON "DEV_BRANCH" OFF)
-CMAKE_DEPENDENT_OPTION(OPENGL "OpenGL 3.0 Core renderer" ON "DEV_BRANCH" OFF)
-CMAKE_DEPENDENT_OPTION(PAS16 "Pro Audio Spectrum 16" OFF "DEV_BRANCH" OFF)
-CMAKE_DEPENDENT_OPTION(PS2M70T4 "IBM PS/2 model 70 (type 4)" ON "DEV_BRANCH" OFF)
-CMAKE_DEPENDENT_OPTION(S3TRIO3D2X "S3 Trio3D/2X" ON "DEV_BRANCH" OFF)
-CMAKE_DEPENDENT_OPTION(SIO_DETECT "Super I/O Detection Helper" ON "DEV_BRANCH" OFF)
-CMAKE_DEPENDENT_OPTION(M154X "ALi ALADDiN IV" ON "DEV_BRANCH" OFF)
-CMAKE_DEPENDENT_OPTION(M6117 "ALi M6117" ON "DEV_BRANCH" OFF)
-CMAKE_DEPENDENT_OPTION(VGAWONDER "ATI VGA Wonder (ATI-18800)" ON "DEV_BRANCH" OFF)
-CMAKE_DEPENDENT_OPTION(VNC "VNC renderer" ON "DEV_BRANCH" OFF)
-CMAKE_DEPENDENT_OPTION(XL24 "ATI VGA Wonder XL24 (ATI-28800-6)" ON "DEV_BRANCH" OFF)
-CMAKE_DEPENDENT_OPTION(VECT486VL "HP Vectra 486VL" ON "DEV_BRANCH" OFF)
+# Determine the build type
+set(RELEASE_BUILD	OFF)
+set(BETA_BUILD		OFF)
+set(ALPHA_BUILD		OFF)
 
 string(TOLOWER "${BUILD_TYPE}" BUILD_TYPE_LOWER)
 if(BUILD_TYPE_LOWER STREQUAL "release")
+	# Release build
+	set(RELEASE_BUILD ON)
 	add_compile_definitions(RELEASE_BUILD)
 elseif(BUILD_TYPE_LOWER STREQUAL "beta")
+	# Beta build
+	set(BETA_BUILD ON)
 	add_compile_definitions(BETA_BUILD)
 elseif(BUILD_TYPE_LOWER STREQUAL "alpha")
+	# Alpha build
+	set(ALPHA_BUILD ON)
 	add_compile_definitions(ALPHA_BUILD)
 endif()
 
-# HACK: Avoid a MSVC2019 compiler bug on ARM64 Debug builds
-if(MSVC_TOOLSET_VERSION GREATER_EQUAL 142 AND ARCH STREQUAL "arm64")
-	# Define a cache option in case somebody wants to disable this workaround
-	set(AVOID_LNK1322 ON CACHE BOOL "Prevent LNK1322 on MSVC2019 ARM64 debug builds")
-
-	if(AVOID_LNK1322)
-		message(STATUS "Working around LNK1322 (86Box#1268)")
-		set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} /Gy")
-		set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /Gy")
-	endif()
+# Variables introduced by richardg867 for versioning stuff
+if(NOT CMAKE_PROJECT_VERSION_PATCH)
+	set(CMAKE_PROJECT_VERSION_PATCH 0)
+endif()
+if(NOT EMU_BUILD_NUM)
+	set(EMU_BUILD_NUM 0)
+endif()
+if(NOT EMU_COPYRIGHT_YEAR)
+	set(EMU_COPYRIGHT_YEAR 2021)
 endif()
 
 add_subdirectory(src)

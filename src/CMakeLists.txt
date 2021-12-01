@@ -65,34 +65,12 @@ if(MINGW)
 	set(CMAKE_FIND_LIBRARY_SUFFIXES ".a" ".dll.a")
 endif()
 
-# Variables introduced by richardg867 for versioning stuff
-if(NOT CMAKE_PROJECT_VERSION_PATCH)
-	set(CMAKE_PROJECT_VERSION_PATCH 0)
-endif()
-if(NOT EMU_BUILD_NUM)
-	set(EMU_BUILD_NUM 0)
-endif()
-if(NOT EMU_COPYRIGHT_YEAR)
-	set(EMU_COPYRIGHT_YEAR 2021)
-endif()
-
-#some macOS specific configuration steps
 if(APPLE)
-# Force using the newest library if it's installed by homebrew
-  set(CMAKE_FIND_FRAMEWORK LAST)
-  
+	# Force using the newest library if it's installed by homebrew
+	set(CMAKE_FIND_FRAMEWORK LAST)
 
-  # prepare stuff for macOS app bundles
-  set(CMAKE_MACOSX_BUNDLE 1)
-
-  # setting our compilation target to macOS 10.13 High Sierra
-  set(CMAKE_OSX_DEPLOYMENT_TARGET "10.13")
-  
-  # preparing the code signing for easier distribution, Apple dev certificate needed at one point
-  #set(XCODE_ATTRIBUTE_CODE_SIGNING_REQUIRED "YES")
-  #set(XCODE_ATTRIBUTE_CODE_SIGN_IDENTITY "-")
-  #set(XCODE_ATTRIBUTE_CODE_SIGN_ENTITLEMENTS ${CMAKE_CURRENT_SOURCE_DIR}/mac/codesign/dev/app.entitlements)
-  
+	# setting our compilation target to macOS 10.13 High Sierra
+	set(CMAKE_OSX_DEPLOYMENT_TARGET "10.13")
 endif()
 
 if(QT)
@@ -111,7 +89,9 @@ endif()
 find_package(Freetype REQUIRED)
 include_directories(${FREETYPE_INCLUDE_DIRS})
 if(APPLE)
-	target_link_libraries(86Box Freetype::Freetype) # bundles freetype for the macOS app bundle
+	# Freetype is dynamically loaded by the emulator, however, we link it
+	# on macOS so it gets copied to the bundle by the installation process
+	target_link_libraries(86Box Freetype::Freetype)
 endif()
 
 find_package(OpenAL REQUIRED)
@@ -173,12 +153,13 @@ if(MINITRACE)
 endif()
 
 if(APPLE)
+	# `install` fails on Mac if the destination is omitted
 	install(TARGETS 86Box DESTINATION "bin")
 else()
 	install(TARGETS 86Box)
 endif()
 
-# adjustments for macOS app bundles
+# Install our dependencies to the macOS bundle
 if(APPLE)
 	install(CODE "
 		include(InstallRequiredSystemLibraries)
@@ -202,10 +183,12 @@ if(APPLE)
 		)
 endif()
 
+# Install our dependencies if using vcpkg
 if(VCPKG_TOOLCHAIN)
 	x_vcpkg_install_local_dependencies(TARGETS 86Box DESTINATION "bin")
 endif()
 
+# Install the PDB file on MSVC builds (i.e. LLVM on Windows+vcpkg)
 if(MSVC)
 	install(FILES $<TARGET_PDB_FILE:86Box>
 		CONFIGURATIONS Debug RelWithDebInfo
