@@ -23,7 +23,7 @@ on:
 
 jobs:
   mingw:
-    name: Windows MSYS2 (${{ matrix.build.name }} ${{ matrix.target.name }})
+    name: Windows MSYS2 (${{ matrix.preset }} ${{ matrix.target.name }})
 
     runs-on: windows-latest
 
@@ -34,16 +34,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        build:
-        - name: Regular
-          preset: regular
-          target: install/strip
-        - name: Debug
-          preset: debug
-          target: install
-        - name: Dev
-          preset: experimental
-          target: install
+        preset: [regular, debug, experimental]
         target:
         - name: x86
           msystem: MINGW32
@@ -53,6 +44,9 @@ jobs:
           msystem: MINGW64
           prefix: mingw-w64-x86_64
           toolchain: cmake/flags-gcc-x86_64.cmake
+        include:
+        - preset: regular
+          strip: --strip
 
     steps:
     - uses: msys2/setup-msys2@v2
@@ -76,15 +70,17 @@ jobs:
     - name: Configure CMake
       run: >-
         cmake -S . -B build -G "MSYS Makefiles"
-        --preset ${{ matrix.build.preset }}
+        --preset ${{ matrix.preset }}
         -D CMAKE_TOOLCHAIN_FILE=${{ matrix.target.toolchain }}
         -D CMAKE_INSTALL_PREFIX=./build/artifacts
         -D VNC=OFF
     - name: Build
-      run: cmake --build build --target ${{ matrix.build.target }}
+      run: cmake --build build
+    - name: Generate package
+      run: cmake --install build --prefix ./build/artifacts ${{ matrix.strip }}
     - uses: actions/upload-artifact@v2
       with:
-        name: '86Box-${{ matrix.build.name }}-MSYS2-${{ matrix.target.name }}-${{ github.sha }}'
+        name: '86Box-${{ matrix.preset }}-MSYS2-${{ matrix.target.name }}-gha${{ github.run_number }}'
         path: build/artifacts/bin/**
 
   llvm-windows:
@@ -163,16 +159,10 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        build:
-        - name: Regular
-          preset: regular
-          target: install/strip
-        - name: Debug
-          preset: debug
-          target: install
-        - name: Dev
-          preset: experimental
-          target: install
+        preset: [regular, debug, experimental]
+        include:
+        - preset: regular
+          strip: --strip
 
     steps:
     - uses: actions/checkout@v2
@@ -180,15 +170,17 @@ jobs:
       run: sudo apt update && sudo apt install gcc-11 g++-11 libfreetype-dev libsdl2-dev libpng-dev libopenal-dev libc6-dev librtmidi-dev
     - name: Configure CMake
       run: >-
-        cmake -S . -B build --preset ${{ matrix.build.preset }}
+        cmake -S . -B build --preset ${{ matrix.preset }}
         -D CMAKE_INSTALL_PREFIX=./build/artifacts
         -D CMAKE_TOOLCHAIN_FILE=./cmake/flags-gcc-x86_64.cmake
         -D CMAKE_C_COMPILER=gcc-11 -D CMAKE_CXX_COMPILER=g++-11
     - name: Build
-      run: cmake --build build --target ${{ matrix.build.target }}
+      run: cmake --build build
+    - name: Generate package
+      run: cmake --install build --prefix ./build/artifacts ${{ matrix.strip }}
     - uses: actions/upload-artifact@v2
       with:
-        name: '86Box-${{ matrix.build.name }}-ubuntu-${{ github.sha }}'
+        name: '86Box-${{ matrix.preset }}-Ubuntu-gha${{ github.run_number }}'
         path: build/artifacts/bin/**
 
   macos:
@@ -197,16 +189,10 @@ jobs:
     runs-on: macos-11
     strategy:
       matrix:
-        build:
-        - name: Regular
-          preset: regular
-          target: install/strip
-        - name: Debug
-          preset: debug
-          target: install
-        - name: Dev
-          preset: experimental
-          target: install
+        preset: [regular, debug, experimental]
+        include:
+        - preset: regular
+          strip: --strip
 
     steps:
     - uses: actions/checkout@v2
@@ -214,12 +200,14 @@ jobs:
       run: brew install freetype sdl2 libpng openal-soft rtmidi
     - name: Configure CMake
       run: >-
-        cmake -S . -B build --preset ${{ matrix.build.preset }}
+        cmake -S . -B build --preset ${{ matrix.preset }}
         -D CMAKE_INSTALL_PREFIX=./build/artifacts
         -D CMAKE_TOOLCHAIN_FILE=./cmake/flags-gcc-x86_64.cmake
     - name: Build
-      run: cmake --build build --target ${{ matrix.build.target }}
+      run: cmake --build build
+    - name: Generate package
+      run: cmake --install build --prefix ./build/artifacts ${{ matrix.strip }}
     - uses: actions/upload-artifact@v2
       with:
-        name: '86Box-${{ matrix.build.name }}-macos11-${{ github.sha }}'
+        name: '86Box-${{ matrix.preset }}-macOS-gha${{ github.run_number }}'
         path: build/artifacts/bin/**
