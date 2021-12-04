@@ -35,8 +35,7 @@
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Debug",
                 "DEV_BRANCH": "ON",
-                "NEW_DYNAREC": "ON",
-                "VNC": "OFF"
+                "NEW_DYNAREC": "ON"
             }
         }
     ]
