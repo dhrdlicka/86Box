@@ -121,11 +121,11 @@ jobs:
         target:
         - name: x86
           triplet: x86-windows-static
-          toolchain: cmake/flags-gcc-i686.cmake
+          toolchain: cmake/llvm-win32-i686.cmake
           vcvars: x64_x86
         - name: x64
           triplet: x64-windows-static
-          toolchain: cmake/flags-gcc-x86_64.cmake
+          toolchain: cmake/llvm-win32-x86_64.cmake
           vcvars: x64
         include:
         - preset: regular
@@ -156,12 +156,6 @@ jobs:
         call "C:/Program Files/Microsoft Visual Studio/2022/Enterprise/VC/Auxiliary/Build/vcvarsall.bat" ${{ matrix.target.vcvars }}
   
         set PATH=C:/Program Files/LLVM/bin;%PATH%
-
-        set CC=clang.exe
-
-        set CXX=clang++.exe
-
-        set RC=rc.exe
 
         cmake -S . -B build -G Ninja --preset ${{ matrix.preset }}
         -D CMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake
