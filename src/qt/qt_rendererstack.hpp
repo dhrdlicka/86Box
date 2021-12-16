@@ -5,6 +5,8 @@
 #include <QKeyEvent>
 #include <QEvent>
 #include <memory>
+#include <vector>
+#include <atomic>
 
 namespace Ui {
 class RendererStack;
@@ -40,7 +42,7 @@ public:
     void switchRenderer(Renderer renderer);
 
 signals:
-    void blitToRenderer(const QImage& img, int, int, int, int);
+    void blitToRenderer(const QImage& img, int, int, int, int, std::atomic_flag* in_use);
 
 public slots:
     void blit(int x, int y, int w, int h);
@@ -64,6 +66,9 @@ private:
     QVector<QImage> imagebufs;
 
     std::unique_ptr<QWidget> current;
+
+    /* atomic flag for each buffer to not overload the renderer */
+    std::vector<std::atomic_flag> buffers_in_use;
 };
 
 #endif // QT_RENDERERCONTAINER_HPP

@@ -222,6 +222,11 @@ MainWindow::MainWindow(QWidget *parent) :
         ui->actionChange_contrast_for_monochrome_display->setChecked(true);
     }
 
+#ifdef Q_OS_WINDOWS
+    /* qt opengles doesn't work (yet?) so hide the menu option */
+    ui->actionHardware_Renderer_OpenGL_ES->setVisible(false);
+#endif
+
     setFocusPolicy(Qt::StrongFocus);
     ui->stackedWidget->setFocusPolicy(Qt::NoFocus);
     ui->centralwidget->setFocusPolicy(Qt::NoFocus);
@@ -822,7 +827,9 @@ static std::array<uint32_t, 256>& selected_keycode = x11_to_xt_base;
 
 uint16_t x11_keycode_to_keysym(uint32_t keycode)
 {
-#ifdef __APPLE__
+#if defined(Q_OS_WINDOWS)
+    return keycode & 0xFFFF;
+#elif defined(__APPLE__)
     return darwin_to_xt[keycode];
 #else
     static Display* x11display = nullptr;
@@ -923,11 +930,14 @@ void MainWindow::showMessage_(const QString &header, const QString &message) {
 
 void MainWindow::keyPressEvent(QKeyEvent* event)
 {
+    if (send_keyboard_input)
+    {
 #ifdef __APPLE__
-    keyboard_input(1, x11_keycode_to_keysym(event->nativeVirtualKey()));
+        keyboard_input(1, x11_keycode_to_keysym(event->nativeVirtualKey()));
 #else
-    keyboard_input(1, x11_keycode_to_keysym(event->nativeScanCode()));
+        keyboard_input(1, x11_keycode_to_keysym(event->nativeScanCode()));
 #endif
+    }
 
     if ((video_fullscreen > 0) && keyboard_isfsexit()) {
         ui->actionFullscreen->trigger();
@@ -946,6 +956,9 @@ void MainWindow::blitToWidget(int x, int y, int w, int h)
 
 void MainWindow::keyReleaseEvent(QKeyEvent* event)
 {
+    if (!send_keyboard_input)
+        return;
+
 #ifdef __APPLE__
     keyboard_input(0, x11_keycode_to_keysym(event->nativeVirtualKey()));
 #else
@@ -1263,4 +1276,9 @@ void MainWindow::on_actionSound_gain_triggered()
 {
     SoundGain gain(this);
     gain.exec();
+}
+
+void MainWindow::setSendKeyboardInput(bool enabled)
+{
+    send_keyboard_input = enabled;
 }

@@ -4,6 +4,20 @@
 #include <QThread>
 #include <QTimer>
 
+#ifdef QT_STATIC
+/* Static builds need plugin imports */
+#include <QtPlugin>
+Q_IMPORT_PLUGIN(QICOPlugin)
+#ifdef Q_OS_WINDOWS
+Q_IMPORT_PLUGIN(QWindowsIntegrationPlugin)
+Q_IMPORT_PLUGIN(QWindowsVistaStylePlugin)
+#endif
+#endif
+
+#ifdef Q_OS_WINDOWS
+#include "qt_winrawinputfilter.hpp"
+#endif
+
 #include <86box/86box.h>
 #include <86box/plat.h>
 #include <86box/ui.h>
@@ -13,7 +27,7 @@
 
 #include "qt_mainwindow.hpp"
 #include "cocoa_mouse.hpp"
-
+#include "qt_styleoverride.hpp"
 
 // Void Cast
 #define VC(x) const_cast<wchar_t*>(x)
@@ -80,6 +94,7 @@ main_thread_fn()
 
 int main(int argc, char* argv[]) {
     QApplication app(argc, argv);
+    app.setStyle(new StyleOverride());
 #ifdef __APPLE__
     CocoaEventFilter cocoafilter;
     app.installNativeEventFilter(&cocoafilter);
@@ -96,6 +111,18 @@ int main(int argc, char* argv[]) {
     main_window->show();
     main_window->setFocus();
     app.installEventFilter(main_window);
+
+#ifdef Q_OS_WINDOWS
+    auto rawInputFilter = WindowsRawInputFilter::Register(main_window);
+    if (rawInputFilter)
+    {
+        app.installNativeEventFilter(rawInputFilter.get());
+        QObject::disconnect(main_window, &MainWindow::pollMouse, 0, 0);
+        QObject::connect(main_window, &MainWindow::pollMouse, (WindowsRawInputFilter*)rawInputFilter.get(), &WindowsRawInputFilter::mousePoll, Qt::DirectConnection);
+        main_window->setSendKeyboardInput(false);
+    }
+#endif
+
     auto widgetList = app.allWidgets();
     for (auto curWidget : widgetList)
     {

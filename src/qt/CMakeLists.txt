@@ -101,10 +101,17 @@ add_library(ui STATIC
     qt_soundgain.cpp
     qt_soundgain.ui
 
+    qt_styleoverride.cpp
+    qt_styleoverride.hpp
+
     ../qt_resources.qrc
 )
 if (APPLE)
     target_sources(ui PRIVATE macos_event_filter.mm)
+endif()
+
+if (WIN32)
+    target_sources(ui PRIVATE qt_winrawinputfilter.hpp qt_winrawinputfilter.cpp)
 endif()
 
 target_link_libraries(
@@ -122,6 +129,13 @@ target_link_libraries(
     Qt5::Gui
     Threads::Threads
 )
+
+# needed for static builds
+if (WIN32)
+    qt_import_plugins(plat INCLUDE Qt5::QWindowsIntegrationPlugin Qt5::QICOPlugin QWindowsVistaStylePlugin)
+else()
+    qt_import_plugins(plat INCLUDE Qt5::QICOPlugin)
+endif()
 
 if (UNIX AND NOT APPLE)
     find_package(X11 REQUIRED)

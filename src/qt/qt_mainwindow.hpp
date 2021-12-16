@@ -28,6 +28,7 @@ public:
     void getTitle(wchar_t* title);
     void blitToWidget(int x, int y, int w, int h);
     QSize getRenderWidgetSize();
+    void setSendKeyboardInput(bool enabled);
 signals:
     void paint(const QImage& image);
     void resizeContents(int w, int h);
@@ -111,6 +112,9 @@ private:
     Ui::MainWindow *ui;
     std::unique_ptr<MachineStatus> status;
     std::shared_ptr<MediaMenu> mm;
+    
+    /* If main window should send keyboard input */
+    bool send_keyboard_input = true;
 };
 
 #endif // QT_MAINWINDOW_HPP

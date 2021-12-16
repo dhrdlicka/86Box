@@ -1,5 +1,6 @@
 #include "qt_hardwarerenderer.hpp"
 #include <QApplication>
+#include <atomic>
 
 extern "C" {
 #include <86box/86box.h>
@@ -31,13 +32,15 @@ void HardwareRenderer::setRenderType(RenderType type) {
         format.setRenderableType(QSurfaceFormat::OpenGLES);
         break;
     }
+    format.setSwapInterval(0);
     setFormat(format);
 }
 
-void HardwareRenderer::onBlit(const QImage& img, int x, int y, int w, int h) {
+void HardwareRenderer::onBlit(const QImage& img, int x, int y, int w, int h, std::atomic_flag* in_use) {
     image = img;
     source.setRect(x, y, w, h);
     update();
+    in_use->clear();
 }
 
 void HardwareRenderer::resizeEvent(QResizeEvent *event) {
