@@ -66,6 +66,7 @@ jobs:
           ${{ matrix.target.prefix }}-libpng
           ${{ matrix.target.prefix }}-libvncserver
           ${{ matrix.target.prefix }}-rtmidi
+          ${{ matrix.target.prefix }}-qt5
     - uses: actions/checkout@v2
     - name: Configure CMake
       run: >-
@@ -91,9 +92,8 @@ jobs:
       fail-fast: false
       matrix:
         triplet:
-        - x86-windows-static
-        - x64-windows-static
-        - arm64-windows-static
+        - x86-windows
+        - x64-windows
 
     steps:
     - run: Invoke-WebRequest https://raw.githubusercontent.com/${{ github.repository }}/${{ github.sha }}/vcpkg.json -OutFile vcpkg.json
@@ -123,22 +123,16 @@ jobs:
         preset: [regular, debug, experimental]
         target:
         - name: x86
-          triplet: x86-windows-static
+          triplet: x86-windows
           toolchain: cmake/llvm-win32-i686.cmake
           vcvars: x64_x86
         - name: x64
-          triplet: x64-windows-static
+          triplet: x64-windows
           toolchain: cmake/llvm-win32-x86_64.cmake
           vcvars: x64
         include:
         - preset: regular
           strip: --strip
-        - preset: experimental
-          target:
-            name: ARM64
-            triplet: arm64-windows-static
-            toolchain: cmake/llvm-win32-aarch64.cmake
-            vcvars: x64_arm64
 
     steps:
     - uses: actions/checkout@v2
@@ -191,7 +185,7 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - name: Install dependencies
-      run: sudo apt update && sudo apt install gcc-11 g++-11 libfreetype-dev libsdl2-dev libpng-dev libopenal-dev libc6-dev librtmidi-dev
+      run: sudo apt update && sudo apt install gcc-11 g++-11 libfreetype-dev libsdl2-dev libpng-dev libopenal-dev libc6-dev librtmidi-dev qtbase5-dev
     - name: Configure CMake
       run: >-
         cmake -S . -B build --preset ${{ matrix.preset }}
@@ -221,12 +215,13 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - name: Install dependencies
-      run: brew install freetype sdl2 libpng openal-soft rtmidi
+      run: brew install freetype sdl2 libpng openal-soft rtmidi qt@5
     - name: Configure CMake
       run: >-
         cmake -S . -B build --preset ${{ matrix.preset }}
         -D CMAKE_INSTALL_PREFIX=./build/artifacts
         -D CMAKE_TOOLCHAIN_FILE=./cmake/flags-gcc-x86_64.cmake
+        -D Qt5_DIR=$(brew --prefix qt@5)/lib/cmake/Qt5
     - name: Build
       run: cmake --build build
     - name: Generate package
