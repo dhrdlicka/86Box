@@ -185,16 +185,14 @@ void RendererStack::switchRenderer(Renderer renderer) {
         this->createWinId();
         auto hw = new HardwareRenderer(this);
         connect(this, &RendererStack::blitToRenderer, hw, &HardwareRenderer::onBlit, Qt::QueuedConnection);
-        hw->setRenderType(HardwareRenderer::RenderType::OpenGL);
         current.reset(this->createWindowContainer(hw, this));
         break;
     }
     case Renderer::OpenGLES:
     {
         this->createWinId();
-        auto hw = new HardwareRenderer(this);
+        auto hw = new HardwareRenderer(this, HardwareRenderer::RenderType::OpenGLES);
         connect(this, &RendererStack::blitToRenderer, hw, &HardwareRenderer::onBlit, Qt::QueuedConnection);
-        hw->setRenderType(HardwareRenderer::RenderType::OpenGLES);
         current.reset(this->createWindowContainer(hw, this));
         break;
     }
@@ -203,6 +201,7 @@ void RendererStack::switchRenderer(Renderer renderer) {
     current->setFocusProxy(this);
     addWidget(current.get());
 
+    this->setStyleSheet("background-color: black");
     for (auto& in_use : buffers_in_use)
         in_use.clear();
 
@@ -226,7 +225,7 @@ void RendererStack::blit(int x, int y, int w, int h)
 
     if (screenshots)
     {
-        video_screenshot((uint32_t *)imagebits, 0, 0, 2048);
+        video_screenshot((uint32_t *)imagebits, x, y, 2048);
     }
     video_blit_complete();
     blitToRenderer(&imagebufs[currentBuf], sx, sy, sw, sh, &buffers_in_use[currentBuf]);

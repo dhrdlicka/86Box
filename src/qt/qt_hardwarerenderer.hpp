@@ -3,6 +3,10 @@
 #include <QOpenGLFunctions>
 #include <QOpenGLWidget>
 #include <QOpenGLWindow>
+#include <QOpenGLTexture>
+#include <QOpenGLShader>
+#include <QOpenGLShaderProgram>
+#include <QOpenGLTextureBlitter>
 #include <QPainter>
 #include <QEvent>
 #include <QKeyEvent>
@@ -25,29 +29,36 @@ private:
     bool wayland = false;
     QWidget* parentWidget{nullptr};
     QOpenGLContext* m_context;
+    QOpenGLTexture* m_texture;
+    QOpenGLShaderProgram* m_prog;
+    QOpenGLTextureBlitter* m_blt;
 public:
+    enum class RenderType {
+        OpenGL,
+        OpenGLES,
+    };
     void resizeGL(int w, int h) override;
     void initializeGL() override;
     void paintGL() override;
-    HardwareRenderer(QWidget* parent = nullptr)
+    HardwareRenderer(QWidget* parent = nullptr, RenderType rtype = RenderType::OpenGL)
     : QOpenGLWindow(QOpenGLWindow::NoPartialUpdate, parent->windowHandle()), QOpenGLFunctions()
     {
         setMinimumSize(QSize(16, 16));
         setFlags(Qt::FramelessWindowHint);
         parentWidget = parent;
+        setRenderType(rtype);
 
         m_context = new QOpenGLContext();
+        m_context->setFormat(format());
         m_context->create();
     }
     ~HardwareRenderer()
     {
-        makeCurrent();
+        m_context->makeCurrent(this);
+        if (m_blt) m_blt->destroy();
     }
 
-    enum class RenderType {
-        OpenGL,
-        OpenGLES,
-    };
+
     void setRenderType(RenderType type);
 
 public slots:
