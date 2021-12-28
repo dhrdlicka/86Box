@@ -173,6 +173,7 @@ jobs:
 
   linux:
     name: "Linux GCC 11"
+    if: false
 
     runs-on: ubuntu-latest
     strategy:
