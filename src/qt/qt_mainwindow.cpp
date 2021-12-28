@@ -3,6 +3,10 @@
 
 #include "qt_specifydimensions.h"
 #include "qt_soundgain.hpp"
+#include "qt_progsettings.hpp"
+
+#include "qt_rendererstack.hpp"
+#include "qt_renderercomon.hpp"
 
 extern "C" {
 #include <86box/86box.h>
@@ -27,6 +31,7 @@ extern "C" {
 #include <QUrl>
 #include <QCheckBox>
 #include <QActionGroup>
+#include <QOpenGLContext>
 
 #include <array>
 #include <unordered_map>
@@ -36,6 +41,9 @@ extern "C" {
 #include "qt_mediamenu.hpp"
 
 #ifdef __unix__
+#ifdef WAYLAND
+#include "wl_mouse.hpp"
+#endif
 #include <X11/Xlib.h>
 #include <X11/keysym.h>
 #undef KeyPress
@@ -163,11 +171,16 @@ MainWindow::MainWindow(QWidget *parent) :
         ui->stackedWidget->switchRenderer(RendererStack::Renderer::OpenGLES);
         ui->actionHardware_Renderer_OpenGL_ES->setChecked(true);
         break;
+    case 3:
+        ui->stackedWidget->switchRenderer(RendererStack::Renderer::OpenGL3);
+        ui->actionOpenGL_3_0_Core->setChecked(true);
+        break;
     }
     actGroup = new QActionGroup(this);
     actGroup->addAction(ui->actionSoftware_Renderer);
     actGroup->addAction(ui->actionHardware_Renderer_OpenGL);
     actGroup->addAction(ui->actionHardware_Renderer_OpenGL_ES);
+    actGroup->addAction(ui->actionOpenGL_3_0_Core);
     switch (scale) {
     case 0:
         ui->action0_5x->setChecked(true);
@@ -1028,6 +1041,7 @@ void MainWindow::on_actionSoftware_Renderer_triggered() {
     ui->stackedWidget->switchRenderer(RendererStack::Renderer::Software);
     ui->actionHardware_Renderer_OpenGL->setChecked(false);
     ui->actionHardware_Renderer_OpenGL_ES->setChecked(false);
+    ui->actionOpenGL_3_0_Core->setChecked(false);
     vid_api = 0;
 }
 
@@ -1035,6 +1049,7 @@ void MainWindow::on_actionHardware_Renderer_OpenGL_triggered() {
     ui->stackedWidget->switchRenderer(RendererStack::Renderer::OpenGL);
     ui->actionSoftware_Renderer->setChecked(false);
     ui->actionHardware_Renderer_OpenGL_ES->setChecked(false);
+    ui->actionOpenGL_3_0_Core->setChecked(false);
     vid_api = 1;
 }
 
@@ -1042,6 +1057,7 @@ void MainWindow::on_actionHardware_Renderer_OpenGL_ES_triggered() {
     ui->stackedWidget->switchRenderer(RendererStack::Renderer::OpenGLES);
     ui->actionSoftware_Renderer->setChecked(false);
     ui->actionHardware_Renderer_OpenGL->setChecked(false);
+    ui->actionOpenGL_3_0_Core->setChecked(false);
     vid_api = 2;
 }
 
@@ -1343,3 +1359,20 @@ void MainWindow::setSendKeyboardInput(bool enabled)
 {
     send_keyboard_input = enabled;
 }
+
+void MainWindow::on_actionOpenGL_3_0_Core_triggered()
+{
+    ui->stackedWidget->switchRenderer(RendererStack::Renderer::OpenGL3);
+    ui->actionSoftware_Renderer->setChecked(false);
+    ui->actionHardware_Renderer_OpenGL->setChecked(false);
+    ui->actionHardware_Renderer_OpenGL_ES->setChecked(false);
+    ui->actionOpenGL_3_0_Core->setChecked(true);
+    vid_api = 3;
+}
+
+void MainWindow::on_actionPreferences_triggered()
+{
+    ProgSettings progsettings(this);
+    progsettings.exec();
+}
+
