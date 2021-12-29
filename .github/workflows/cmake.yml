@@ -227,6 +227,7 @@ jobs:
         cmake -S . -B build --preset ${{ matrix.preset }}
         -D CMAKE_INSTALL_PREFIX=./build/artifacts
         -D CMAKE_TOOLCHAIN_FILE=./cmake/flags-gcc-x86_64.cmake
+        -D BUILD_TYPE=alpha
     - name: Build
       run: cmake --build build
     - name: Generate package
