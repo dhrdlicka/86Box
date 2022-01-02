@@ -1,0 +1,8 @@
+Checks: >-
+  -*
+  bugprone-*
+  misc-*
+  performance-*
+  portability-*
+  readability-*
+  -readability-braces-around-statements
