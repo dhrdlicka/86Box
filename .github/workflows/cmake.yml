@@ -7,7 +7,7 @@ on:
     - src/**
     - cmake/**
     - "**/CMakeLists.txt"
-    - "CMakePresets.json"
+    - CMakePresets.json
     - .github/workflows/cmake.yml
     - vcpkg.json
     - "!**/Makefile*"
@@ -17,7 +17,7 @@ on:
     - src/**
     - cmake/**
     - "**/CMakeLists.txt"
-    - "CMakePresets.json"
+    - CMakePresets.json
     - .github/workflows/**
     - .github/workflows/cmake.yml
     - vcpkg.json
