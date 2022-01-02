@@ -11,6 +11,7 @@ on:
     - .github/workflows/cmake.yml
     - vcpkg.json
     - "!**/Makefile*"
+    - .clang-tidy
 
   pull_request:
     paths:
@@ -22,6 +23,7 @@ on:
     - .github/workflows/cmake.yml
     - vcpkg.json
     - "!**/Makefile*"
+    - .clang-tidy
 
 jobs:
   mingw:
