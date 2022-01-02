@@ -14,14 +14,9 @@
 #
 
 include(${CMAKE_CURRENT_LIST_DIR}/flags-gcc-x86_64.cmake)
+include(${CMAKE_CURRENT_LIST_DIR}/llvm-win32.cmake)
 
-# Use the GCC-compatible Clang executables in order to use our flags
-set(CMAKE_C_COMPILER    clang)
-set(CMAKE_CXX_COMPILER  clang++)
-
-# `llvm-rc` is barely usable as of LLVM 13, using MS' rc.exe for now
-set(CMAKE_RC_COMPILER   rc)
-
+# Set the build target
 set(CMAKE_C_COMPILER_TARGET     x86_64-pc-windows-msvc)
 set(CMAKE_CXX_COMPILER_TARGET   x86_64-pc-windows-msvc)
 
