@@ -21,5 +21,5 @@ set(CMAKE_CXX_COMPILER  clang++)
 set(CMAKE_RC_COMPILER   rc)
 
 # Run `clang-tidy` on build
-set(CMAKE_C_CLANG_TIDY      clang-tidy --checks=-*,misc-*,performance-*,readability-*,-readability-braces-around-statements,-readability-magic-numbers)
-set(CMAKE_CXX_CLANG_TIDY    clang-tidy --checks=-*,misc-*,performance-*,readability-*,-readability-braces-around-statements,-readability-magic-numbers)
+set(CMAKE_C_CLANG_TIDY      clang-tidy --checks=-*,bugprone-*,misc-*,performance-*,readability-*,-readability-braces-around-statements,-readability-magic-numbers)
+set(CMAKE_CXX_CLANG_TIDY    clang-tidy --checks=-*,bugprone-*,misc-*,performance-*,readability-*,-readability-braces-around-statements,-readability-magic-numbers)
