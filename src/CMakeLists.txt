@@ -157,18 +157,18 @@ else()
     install(TARGETS 86Box)
 endif()
 
-# Install our dependencies to the macOS bundle
-if(APPLE)
-    install(CODE "
-        include(BundleUtilities)
-        get_filename_component(CMAKE_INSTALL_PREFIX_ABSOLUTE \${CMAKE_INSTALL_PREFIX} ABSOLUTE)
-        fixup_bundle(\"\${CMAKE_INSTALL_PREFIX_ABSOLUTE}/86Box.app\" \"\" \"\")"
-    COMPONENT Runtime)
-endif()
-
 # Install our dependencies if using vcpkg
 if(VCPKG_TOOLCHAIN)
     x_vcpkg_install_local_dependencies(TARGETS 86Box DESTINATION ".")
+endif()
+
+# Install other dependencies
+if(APPLE OR WIN32)
+    install(CODE "
+        include(BundleUtilities)
+        get_filename_component(CMAKE_INSTALL_PREFIX_ABSOLUTE \${CMAKE_INSTALL_PREFIX} ABSOLUTE)
+        fixup_bundle(\"\${CMAKE_INSTALL_PREFIX_ABSOLUTE}/$<TARGET_FILE_NAME:86Box>\" \"\" \"\")"
+    COMPONENT Runtime)
 endif()
 
 # Install the PDB file on Windows builds
