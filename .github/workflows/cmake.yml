@@ -169,8 +169,8 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - name: Download Ninja
-      run: >
-        Invoke-WebRequest https://github.com/ninja-build/ninja/releases/download/v1.10.2/ninja-win.zip -OutFile ninja-win.zip && 
+      run: |
+        Invoke-WebRequest https://github.com/ninja-build/ninja/releases/download/v1.10.2/ninja-win.zip -OutFile ninja-win.zip
         Expand-Archive ninja-win.zip -DestinationPath .
     - name: Setup NuGet Credentials
       run: >
@@ -182,6 +182,10 @@ jobs:
         -username "86Box"
         -password "${{ secrets.GITHUB_TOKEN }}"
     - run: dir "C:/Program Files/Microsoft Visual Studio/2022/*/VC/Tools/MSVC/*/include" -include stdatomic.h -recurse | del
+    - run: |
+        Invoke-WebRequest https://github.com/llvm/llvm-project/releases/download/llvmorg-13.0.1/LLVM-13.0.1-woa64.zip -OutFile LLVM-13.0.1-woa64.zip
+        Expand-Archive LLVM-13.0.1-woa64.zip -DestinationPath llvm-woa64
+        copy llvm-woa64\lib\clang\13.0.1\lib\windows\*.lib "C:\Program Files\LLVM\lib\clang\13.0.1\lib\windows"
     - name: vcpkg package restore
       if: false
       run: vcpkg install freetype libpng openal-soft sdl2 rtmidi --triplet ${{ matrix.target.triplet }}
