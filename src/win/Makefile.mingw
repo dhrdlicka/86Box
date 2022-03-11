@@ -192,7 +192,7 @@ ifndef CPPTHREADS
  CPPTHREADS	:= y
 endif
 ifndef RTMIDI
- RTMIDI		:= y
+ RTMIDI		:= n
 endif
 ifeq ($(DYNAREC), y)
  ifeq ($(ARM), y)
