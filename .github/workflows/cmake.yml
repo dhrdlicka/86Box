@@ -311,16 +311,15 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: Install dependencies
-        run: brew install freetype sdl2 libpng rtmidi qt@5 faudio
+        run: brew install freetype sdl2 libpng rtmidi qt faudio
       - name: Configure CMake
         run: >-
-          PATH=/usr/local/opt/qt@5/bin:$PATH
           cmake -S . -B build
           --toolchain cmake/flags-gcc-x86_64.cmake
+          -D USE_QT6=ON
           -D DEV_BRANCH=${{ matrix.build.dev-build }}
           -D NEW_DYNAREC=${{ matrix.build.new-dynarec }}
           -D CMAKE_BUILD_TYPE=${{ matrix.build.type }}
-          -D CMAKE_FIND_ROOT_PATH=/usr/local/opt/qt@5
       - name: Build
         run: cmake --build build
       - name: Generate package
