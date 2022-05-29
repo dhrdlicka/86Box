@@ -298,10 +298,11 @@ endif()
 #endif()
 
 if(APPLE AND CMAKE_MACOSX_BUNDLE)
+    find_program(MACDEPLOYQT_EXECUTABLE macdeployqt REQUIRED)
     install(CODE "
         get_filename_component(CMAKE_INSTALL_PREFIX_ABSOLUTE \${CMAKE_INSTALL_PREFIX} ABSOLUTE)
         execute_process(
-            COMMAND $<TARGET_FILE:Qt${QT_MAJOR}::macdeployqt>
+            COMMAND ${MACDEPLOYQT_EXECUTABLE}
             \"\${CMAKE_INSTALL_PREFIX_ABSOLUTE}/86Box.app\")
     ")
 endif()
