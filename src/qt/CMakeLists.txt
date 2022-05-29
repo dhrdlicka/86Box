@@ -249,52 +249,61 @@ endif()
 
 # loads a macro to install Qt5 plugins on macOS
 # based on https://stackoverflow.com/questions/35612687/cmake-macos-x-bundle-with-bundleutiliies-for-qt-application
-macro(install_qt5_plugin _qt_plugin_name _qt_plugins_var _prefix)
-    get_target_property(_qt_plugin_path "${_qt_plugin_name}" LOCATION)
-    if(EXISTS "${_qt_plugin_path}")
-        get_filename_component(_qt_plugin_file "${_qt_plugin_path}" NAME)
-        get_filename_component(_qt_plugin_type "${_qt_plugin_path}" PATH)
-        get_filename_component(_qt_plugin_type "${_qt_plugin_type}" NAME)
-        set(_qt_plugin_dest "${_prefix}/PlugIns/${_qt_plugin_type}")
-        install(FILES "${_qt_plugin_path}" DESTINATION "${_qt_plugin_dest}")
-        list(APPEND ${_qt_plugins_var} "\${CMAKE_INSTALL_PREFIX_ABSOLUTE}/${_qt_plugin_dest}/${_qt_plugin_file}")
-    else()
-        message(FATAL_ERROR "QT plugin ${_qt_plugin_name} not found")
-    endif()
-endmacro()
+#macro(install_qt5_plugin _qt_plugin_name _qt_plugins_var _prefix)
+#    get_target_property(_qt_plugin_path "${_qt_plugin_name}" LOCATION)
+#    if(EXISTS "${_qt_plugin_path}")
+#        get_filename_component(_qt_plugin_file "${_qt_plugin_path}" NAME)
+#        get_filename_component(_qt_plugin_type "${_qt_plugin_path}" PATH)
+#        get_filename_component(_qt_plugin_type "${_qt_plugin_type}" NAME)
+#        set(_qt_plugin_dest "${_prefix}/PlugIns/${_qt_plugin_type}")
+#        install(FILES "${_qt_plugin_path}" DESTINATION "${_qt_plugin_dest}")
+#        list(APPEND ${_qt_plugins_var} "\${CMAKE_INSTALL_PREFIX_ABSOLUTE}/${_qt_plugin_dest}/${_qt_plugin_file}")
+#    else()
+#        message(FATAL_ERROR "QT plugin ${_qt_plugin_name} not found")
+#    endif()
+#endmacro()
+#
+#if (APPLE AND CMAKE_MACOSX_BUNDLE)
+#    set(prefix "86Box.app/Contents")
+#    set(INSTALL_RUNTIME_DIR "${prefix}/MacOS")
+#    set(INSTALL_CMAKE_DIR "${prefix}/Resources")
+#
+#    # using the install_qt5_plugin to add Qt plugins into the macOS app bundle
+#    install_qt5_plugin("Qt${QT_MAJOR}::QCocoaIntegrationPlugin" QT_PLUGINS ${prefix})
+#    install_qt5_plugin("Qt${QT_MAJOR}::QMacStylePlugin" QT_PLUGINS ${prefix})
+#    install_qt5_plugin("Qt${QT_MAJOR}::QICOPlugin" QT_PLUGINS ${prefix})
+#    install_qt5_plugin("Qt${QT_MAJOR}::QICNSPlugin" QT_PLUGINS ${prefix})
+#
+#    file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/qt.conf"
+#        "[Paths]\nPlugins = PlugIns\n")
+#    install(FILES "${CMAKE_CURRENT_BINARY_DIR}/qt.conf"
+#        DESTINATION "${INSTALL_CMAKE_DIR}")
+#
+#    # Path used for searching by FIND_XXX(), with appropriate suffixes added
+#    if(CMAKE_PREFIX_PATH)
+#        foreach(dir ${CMAKE_PREFIX_PATH})
+#            list(APPEND DIRS "${dir}/bin" "${dir}/lib")
+#        endforeach()
+#    endif()
+#
+#    # Append Qt's lib folder which is two levels above Qt*Widgets_DIR
+#    list(APPEND DIRS "${Qt${QT_MAJOR}Widgets_DIR}/../..")
+#
+#    include(InstallRequiredSystemLibraries)
+#
+#    install(CODE "
+#        include(BundleUtilities)
+#        get_filename_component(CMAKE_INSTALL_PREFIX_ABSOLUTE \$ENV{DESTDIR}\${CMAKE_INSTALL_PREFIX} ABSOLUTE)
+#        fixup_bundle(\"\${CMAKE_INSTALL_PREFIX_ABSOLUTE}/86Box.app\" \"${QT_PLUGINS}\" \"${DIRS}\")")
+#endif()
 
-if (APPLE AND CMAKE_MACOSX_BUNDLE)
-    set(prefix "86Box.app/Contents")
-    set(INSTALL_RUNTIME_DIR "${prefix}/MacOS")
-    set(INSTALL_CMAKE_DIR "${prefix}/Resources")
-
-    # using the install_qt5_plugin to add Qt plugins into the macOS app bundle
-    install_qt5_plugin("Qt${QT_MAJOR}::QCocoaIntegrationPlugin" QT_PLUGINS ${prefix})
-    install_qt5_plugin("Qt${QT_MAJOR}::QMacStylePlugin" QT_PLUGINS ${prefix})
-    install_qt5_plugin("Qt${QT_MAJOR}::QICOPlugin" QT_PLUGINS ${prefix})
-    install_qt5_plugin("Qt${QT_MAJOR}::QICNSPlugin" QT_PLUGINS ${prefix})
-
-    file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/qt.conf"
-        "[Paths]\nPlugins = PlugIns\n")
-    install(FILES "${CMAKE_CURRENT_BINARY_DIR}/qt.conf"
-        DESTINATION "${INSTALL_CMAKE_DIR}")
-
-    # Path used for searching by FIND_XXX(), with appropriate suffixes added
-    if(CMAKE_PREFIX_PATH)
-        foreach(dir ${CMAKE_PREFIX_PATH})
-            list(APPEND DIRS "${dir}/bin" "${dir}/lib")
-        endforeach()
-    endif()
-
-    # Append Qt's lib folder which is two levels above Qt*Widgets_DIR
-    list(APPEND DIRS "${Qt${QT_MAJOR}Widgets_DIR}/../..")
-
-    include(InstallRequiredSystemLibraries)
-
+if(APPLE AND CMAKE_MACOSX_BUNDLE)
     install(CODE "
-        include(BundleUtilities)
-        get_filename_component(CMAKE_INSTALL_PREFIX_ABSOLUTE \$ENV{DESTDIR}\${CMAKE_INSTALL_PREFIX} ABSOLUTE)
-        fixup_bundle(\"\${CMAKE_INSTALL_PREFIX_ABSOLUTE}/86Box.app\" \"${QT_PLUGINS}\" \"${DIRS}\")")
+        get_filename_component(CMAKE_INSTALL_PREFIX_ABSOLUTE \${CMAKE_INSTALL_PREFIX} ABSOLUTE)
+        execute_process(
+            COMMAND $<TARGET_FILE:Qt${QT_MAJOR}::macdeployqt>
+            \"\${CMAKE_INSTALL_PREFIX_ABSOLUTE}/86Box.app\")
+    ")
 endif()
 
 if (UNIX AND NOT APPLE AND NOT HAIKU)
