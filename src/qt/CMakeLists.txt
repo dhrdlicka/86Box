@@ -33,12 +33,12 @@ find_package(Qt${QT_MAJOR} COMPONENTS Core Widgets Network OpenGL REQUIRED)
 
 # TODO: Is this the correct way to do this, and is it required on any
 # other platforms or with Qt 5?
-if(APPLE AND USE_QT6)
-    find_package(Qt6Gui/Qt6QCocoaIntegrationPlugin REQUIRED)
-    find_package(Qt6Widgets/Qt6QMacStylePlugin REQUIRED)
-    find_package(Qt6Gui/Qt6QICOPlugin REQUIRED)
-    find_package(Qt6Gui/Qt6QICNSPlugin REQUIRED)
-endif()
+#if(APPLE AND USE_QT6)
+#    find_package(Qt6Gui/Qt6QCocoaIntegrationPlugin REQUIRED)
+#    find_package(Qt6Widgets/Qt6QMacStylePlugin REQUIRED)
+#    find_package(Qt6Gui/Qt6QICOPlugin REQUIRED)
+#    find_package(Qt6Gui/Qt6QICNSPlugin REQUIRED)
+#endif()
 
 add_library(plat STATIC
     qt.c
