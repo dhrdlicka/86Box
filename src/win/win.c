@@ -519,6 +519,10 @@ main_thread(void *param)
     uint32_t old_time, new_time;
     int drawits, frames;
 
+    int sleep_fixed = fixed_delay;
+    int sleep_lagging = hybrid_delay_behind;
+    int sleep_subtract = -hybrid_delay_ahead;
+
     framecountx = 0;
     title_update = 1;
     old_time = GetTickCount();
@@ -548,11 +552,15 @@ main_thread(void *param)
 			nvr_dosave = 0;
 			frames = 0;
 		}
-	} else	/* Just so we dont overload the host OS. */
-		if (drawits < -1 || dopause)
-			Sleep(-1 - drawits);
-		else
-			Sleep(0);
+	} else { /* Just so we dont overload the host OS. */
+        if (sleep_fixed || dopause)
+            Sleep(sleep_fixed ? sleep_fixed : 1);
+        else
+            if (drawits < -1)
+                Sleep(sleep_subtract - drawits);
+            else
+                Sleep(sleep_lagging);
+    }
 
 	/* If needed, handle a screen resize. */
 	if (!atomic_flag_test_and_set(&doresize) && !video_fullscreen && !is_quit) {

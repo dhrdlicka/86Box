@@ -184,6 +184,10 @@ int confirm_exit = 1;				/* (C) enable exit confirmation */
 int confirm_save = 1;				/* (C) enable save confirmation */
 int	enable_discord = 0;			/* (C) enable Discord integration */
 
+int fixed_delay = 1;
+int hybrid_delay_ahead = 1;
+int hybrid_delay_behind = 0;
+
 /* Statistics. */
 extern int mmuflush;
 extern int readlnum;

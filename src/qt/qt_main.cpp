@@ -88,6 +88,10 @@ main_thread_fn()
     uint64_t old_time, new_time;
     int drawits, frames;
 
+    int sleep_fixed = fixed_delay;
+    int sleep_lagging = hybrid_delay_behind;
+    int sleep_subtract = -hybrid_delay_ahead;
+
     QThread::currentThread()->setPriority(QThread::HighestPriority);
     framecountx = 0;
     //title_update = 1;
@@ -120,10 +124,18 @@ main_thread_fn()
             }
         } else {
             /* Just so we dont overload the host OS. */
-            if (drawits < -1 || dopause)
-                std::this_thread::sleep_for(std::chrono::milliseconds(-1 - drawits));
-            else
-                std::this_thread::yield();
+            if (sleep_fixed || dopause) {
+                std::this_thread::sleep_for(std::chrono::milliseconds(sleep_fixed ? sleep_fixed : 1));
+            } else {
+                if (drawits < sleep_subtract) {
+                    std::this_thread::sleep_for(std::chrono::milliseconds(sleep_subtract - drawits));
+                } else {
+                    if (sleep_lagging)
+                        std::this_thread::sleep_for(std::chrono::milliseconds(sleep_lagging));
+                    else
+                        std::this_thread::yield();
+                }
+            }
         }
 
         /* If needed, handle a screen resize. */

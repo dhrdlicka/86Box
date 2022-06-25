@@ -593,6 +593,10 @@ load_general(void)
     confirm_exit = config_get_int(cat, "confirm_exit", 1);
     confirm_save = config_get_int(cat, "confirm_save", 1);
 
+    fixed_delay = config_get_int(cat, "fixed_delay", 1);
+    hybrid_delay_ahead = config_get_int(cat, "hybrid_delay_ahead", 1);
+    hybrid_delay_behind = config_get_int(cat, "hybrid_delay_behind", 0);
+
 	p = config_get_string(cat, "language", NULL);
 	if (p != NULL)
 	{
@@ -2313,6 +2317,10 @@ save_general(void)
 	config_set_int(cat, "confirm_save", confirm_save);
     else
 	config_delete_var(cat, "confirm_save");
+
+    config_set_int(cat, "fixed_delay", fixed_delay);
+    config_set_int(cat, "hybrid_delay_ahead", hybrid_delay_ahead);
+    config_set_int(cat, "hybrid_delay_behind", hybrid_delay_behind);
 
     if (mouse_sensitivity != 1.0)
     config_set_double(cat, "mouse_sensitivity", mouse_sensitivity);

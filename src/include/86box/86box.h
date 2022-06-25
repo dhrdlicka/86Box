@@ -146,6 +146,10 @@ extern int	scrnsz_x,			/* current screen size, X */
 extern int	efscrnsz_y;
 extern int	config_changed;			/* config has changed */
 
+extern int  fixed_delay;
+extern int  hybrid_delay_ahead;
+extern int  hybrid_delay_behind;
+
 
 /* Function prototypes. */
 #ifdef HAVE_STDARG_H
