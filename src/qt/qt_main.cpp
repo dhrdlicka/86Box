@@ -120,7 +120,10 @@ main_thread_fn()
             }
         } else {
             /* Just so we dont overload the host OS. */
-            std::this_thread::sleep_for(std::chrono::milliseconds(1));
+            if (drawits < -1 || dopause)
+                std::this_thread::sleep_for(std::chrono::milliseconds(-1 - drawits));
+            else
+                std::this_thread::yield();
         }
 
         /* If needed, handle a screen resize. */
