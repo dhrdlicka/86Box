@@ -229,13 +229,13 @@ sdl_stretch(int *w, int *h, int *x, int *y)
 
 
 static void
-sdl_blit(int x, int y, int w, int h)
+sdl_blit(bitmap_t *bitmap, int x, int y, int w, int h)
 {
     SDL_Rect r_src;
     int ret;
 
-    if (!sdl_enabled || (x < 0) || (y < 0) || (w <= 0) || (h <= 0) || (w > 2048) || (h > 2048) || (buffer32 == NULL) || (sdl_render == NULL) || (sdl_tex == NULL)) {
-	video_blit_complete();
+    if (!sdl_enabled || (x < 0) || (y < 0) || (w <= 0) || (h <= 0) || (w > 2048) || (h > 2048) || (bitmap == NULL) || (sdl_render == NULL) || (sdl_tex == NULL)) {
+	video_blit_complete(bitmap);
 	return;
     }
 
@@ -245,12 +245,12 @@ sdl_blit(int x, int y, int w, int h)
     r_src.y = y;
     r_src.w = w;
     r_src.h = h;
-    SDL_UpdateTexture(sdl_tex, &r_src, &(buffer32->line[y][x]), 2048 * sizeof(uint32_t));
+    SDL_UpdateTexture(sdl_tex, &r_src, &(bitmap->line[y][x]), 2048 * sizeof(uint32_t));
 
     if (screenshots)
-	video_screenshot((uint32_t *) buffer32->dat, x, y, 2048);
+	video_screenshot((uint32_t *) bitmap->dat, x, y, 2048);
 
-    video_blit_complete();
+    video_blit_complete(bitmap);
 
     SDL_RenderClear(sdl_render);
 
@@ -269,15 +269,15 @@ sdl_blit(int x, int y, int w, int h)
 
 
 static void
-sdl_blit_ex(int x, int y, int w, int h)
+sdl_blit_ex(bitmap_t *bitmap, int x, int y, int w, int h)
 {
     SDL_Rect r_src;
     void *pixeldata;
     int pitch, ret;
     int row;
 
-    if (!sdl_enabled || (x < 0) || (y < 0) || (w <= 0) || (h <= 0) || (w > 2048) || (h > 2048) || (buffer32 == NULL) || (sdl_render == NULL) || (sdl_tex == NULL)) {
-	video_blit_complete();
+    if (!sdl_enabled || (x < 0) || (y < 0) || (w <= 0) || (h <= 0) || (w > 2048) || (h > 2048) || (bitmap == NULL) || (sdl_render == NULL) || (sdl_tex == NULL)) {
+	video_blit_complete(bitmap);
 	return;
     }
 
@@ -286,14 +286,14 @@ sdl_blit_ex(int x, int y, int w, int h)
     SDL_LockTexture(sdl_tex, 0, &pixeldata, &pitch);
 
     for (row = 0; row < h; ++row)
-	video_copy(&(((uint8_t *) pixeldata)[row * 2048 * sizeof(uint32_t)]), &(buffer32->line[y + row][x]), w * sizeof(uint32_t));
+	video_copy(&(((uint8_t *) pixeldata)[row * 2048 * sizeof(uint32_t)]), &(bitmap->line[y + row][x]), w * sizeof(uint32_t));
 
     if (screenshots)
 	video_screenshot((uint32_t *) pixeldata, 0, 0, 2048);
 
     SDL_UnlockTexture(sdl_tex);
 
-    video_blit_complete();
+    video_blit_complete(bitmap);
 
     SDL_RenderClear(sdl_render);
 

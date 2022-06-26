@@ -136,10 +136,10 @@ void D3D9Renderer::resizeEvent(QResizeEvent *event)
     QWidget::resizeEvent(event);
 }
 
-void D3D9Renderer::blit(int x, int y, int w, int h)
+void D3D9Renderer::blit(bitmap_t *bitmap, int x, int y, int w, int h)
 {
-    if ((x < 0) || (y < 0) || (w <= 0) || (h <= 0) || (w > 2048) || (h > 2048) || (buffer32 == NULL) || surfaceInUse) {
-        video_blit_complete();
+    if ((x < 0) || (y < 0) || (w <= 0) || (h <= 0) || (w > 2048) || (h > 2048) || (bitmap == NULL) || surfaceInUse) {
+        video_blit_complete(bitmap);
         return;
     }
     surfaceInUse = true;
@@ -152,16 +152,16 @@ void D3D9Renderer::blit(int x, int y, int w, int h)
     srcRect.right = source.right();
 
     if (screenshots) {
-        video_screenshot((uint32_t *) &(buffer32->line[y][x]), 0, 0, 2048);
+        video_screenshot((uint32_t *) &(bitmap->line[y][x]), 0, 0, 2048);
     }
     if (SUCCEEDED(d3d9surface->LockRect(&lockRect, &srcRect, 0))) {
         for (int y1 = 0; y1 < h; y1++) {
-            video_copy(((uint8_t*)lockRect.pBits) + (y1 * lockRect.Pitch), &(buffer32->line[y + y1][x]), w * 4);
+            video_copy(((uint8_t*)lockRect.pBits) + (y1 * lockRect.Pitch), &(bitmap->line[y + y1][x]), w * 4);
         }
-        video_blit_complete();
+        video_blit_complete(bitmap);
         d3d9surface->UnlockRect();
     }
-    else video_blit_complete();
+    else video_blit_complete(bitmap);
     surfaceInUse = false;
     QTimer::singleShot(0, this, [this] { this->update(); });
 }

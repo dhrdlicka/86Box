@@ -11,6 +11,10 @@
 #include <tuple>
 #include <vector>
 
+extern "C" {
+#include <86box/video.h>
+}
+
 class QWidget;
 
 class RendererCommon {
@@ -30,7 +34,7 @@ public:
     virtual QDialog *getOptions(QWidget *parent) { return nullptr; }
 
     virtual bool hasBlitFunc() { return false; }
-    virtual void blit(int x, int y, int w, int h) {}
+    virtual void blit(bitmap_t *bitmap, int x, int y, int w, int h) {}
 
 protected:
     bool eventDelegate(QEvent *event, bool &result);

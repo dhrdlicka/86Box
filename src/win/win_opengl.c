@@ -871,24 +871,24 @@ static void opengl_main(void* param)
 	CoUninitialize();
 }
 
-static void opengl_blit(int x, int y, int w, int h)
+static void opengl_blit(bitmap_t *bitmap, int x, int y, int w, int h)
 {
 	int row;
 
-	if ((x < 0) || (y < 0) || (w <= 0) || (h <= 0) || (w > 2048) || (h > 2048) || (buffer32 == NULL) || (thread == NULL) ||
+	if ((x < 0) || (y < 0) || (w <= 0) || (h <= 0) || (w > 2048) || (h > 2048) || (bitmap == NULL) || (thread == NULL) ||
 		atomic_flag_test_and_set(&blit_info[write_pos].in_use))
 	{
-		video_blit_complete();
+		video_blit_complete(bitmap);
 		return;
 	}
 
 	for (row = 0; row < h; ++row)
-		video_copy(&(((uint8_t *) blit_info[write_pos].buffer)[row * ROW_LENGTH * sizeof(uint32_t)]), &(buffer32->line[y + row][x]), w * sizeof(uint32_t));
+		video_copy(&(((uint8_t *) blit_info[write_pos].buffer)[row * ROW_LENGTH * sizeof(uint32_t)]), &(bitmap->line[y + row][x]), w * sizeof(uint32_t));
 
 	if (screenshots)
 		video_screenshot(blit_info[write_pos].buffer, 0, 0, ROW_LENGTH);
 
-	video_blit_complete();
+	video_blit_complete(bitmap);
 
 	blit_info[write_pos].w = w;
 	blit_info[write_pos].h = h;

@@ -8,6 +8,10 @@
 #include <d3d9.h>
 #include <atomic>
 
+extern "C" {
+#include <86box/video.h>
+}
+
 class D3D9Renderer : public QWidget, public RendererCommon
 {
     Q_OBJECT
@@ -15,7 +19,7 @@ public:
     explicit D3D9Renderer(QWidget *parent = nullptr);
     ~D3D9Renderer();
     bool hasBlitFunc() override { return true; }
-    void blit(int x, int y, int w, int h) override;
+    void blit(bitmap_t *bitmap, int x, int y, int w, int h) override;
     void finalize() override;
 
 protected:

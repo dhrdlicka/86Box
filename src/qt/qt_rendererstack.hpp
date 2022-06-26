@@ -14,6 +14,10 @@
 
 #include "qt_renderercommon.hpp"
 
+extern "C" {
+#include <86box/video.h>
+}
+
 namespace Ui {
 class RendererStack;
 }
@@ -73,13 +77,13 @@ public:
 
 signals:
     void blitToRenderer(int buf_idx, int x, int y, int w, int h);
-    void blit(int x, int y, int w, int h);
+    void blit(bitmap_t *bitmap, int x, int y, int w, int h);
     void rendererChanged();
 
 public slots:
-    void blitCommon(int x, int y, int w, int h);
-    void blitRenderer(int x, int y, int w, int h);
-    void blitDummy(int x, int y, int w, int h);
+    void blitCommon(bitmap_t *bitmap, int x, int y, int w, int h);
+    void blitRenderer(bitmap_t *bitmap, int x, int y, int w, int h);
+    void blitDummy(bitmap_t *bitmap, int x, int y, int w, int h);
     void mousePoll();
 
 private:

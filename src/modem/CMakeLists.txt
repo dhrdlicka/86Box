@@ -1,0 +1,1 @@
+add_library(modem OBJECT modem.c modem_hayes.c)

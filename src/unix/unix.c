@@ -37,6 +37,7 @@
 #include <86box/timer.h>
 #include <86box/nvr.h>
 #include <86box/ui.h>
+#include <86box/video.h>
 #include <86box/gdbstub.h>
 
 #ifdef __APPLE__
@@ -601,8 +602,7 @@ do_stop(void)
     if (blitreq)
     {
         blitreq = 0;
-        extern void video_blit_complete();
-        video_blit_complete();
+        video_blit_complete(bitmap);
     }
 
     while(SDL_TryLockMutex(blitmtx) == SDL_MUTEX_TIMEDOUT)
@@ -610,8 +610,7 @@ do_stop(void)
         if (blitreq)
         {
             blitreq = 0;
-            extern void video_blit_complete();
-            video_blit_complete();
+            video_blit_complete(bitmap);
         }
     }
     startblit();

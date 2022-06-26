@@ -119,7 +119,7 @@ static BMessageFilter* filter;
 #endif
 
 extern void qt_mouse_capture(int);
-extern "C" void qt_blit(int x, int y, int w, int h);
+extern "C" void qt_blit(bitmap_t *bitmap, int x, int y, int w, int h);
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -1487,9 +1487,9 @@ void MainWindow::keyPressEvent(QKeyEvent* event)
     event->accept();
 }
 
-void MainWindow::blitToWidget(int x, int y, int w, int h)
+void MainWindow::blitToWidget(bitmap_t *bitmap, int x, int y, int w, int h)
 {
-    ui->stackedWidget->blit(x, y, w, h);
+    ui->stackedWidget->blit(bitmap, x, y, w, h);
 }
 
 void MainWindow::keyReleaseEvent(QKeyEvent* event)

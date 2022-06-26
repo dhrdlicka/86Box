@@ -35,6 +35,7 @@ extern "C" {
 #include <86box/plat.h>
 #include <86box/ui.h>
 #include <86box/mouse.h>
+#include <86box/video.h>
 
 void
 plat_delay_ms(uint32_t count)
@@ -55,9 +56,9 @@ wchar_t* ui_window_title(wchar_t* str)
     return str;
 }
 
-extern "C" void qt_blit(int x, int y, int w, int h)
+extern "C" void qt_blit(bitmap_t *bitmap, int x, int y, int w, int h)
 {
-    main_window->blitToWidget(x, y, w, h);
+    main_window->blitToWidget(bitmap, x, y, w, h);
 }
 
 void mouse_poll() {

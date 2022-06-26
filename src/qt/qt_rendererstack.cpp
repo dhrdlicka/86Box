@@ -396,27 +396,27 @@ RendererStack::createRenderer(Renderer renderer)
 }
 
 void
-RendererStack::blitDummy(int x, int y, int w, int h)
+RendererStack::blitDummy(bitmap_t *bitmap, int x, int y, int w, int h)
 {
-    video_blit_complete();
+    video_blit_complete(bitmap);
     blitDummied = true;
 }
 
 void
-RendererStack::blitRenderer(int x, int y, int w, int h)
+RendererStack::blitRenderer(bitmap_t *bitmap, int x, int y, int w, int h)
 {
-    if (blitDummied) { blitDummied = false; video_blit_complete(); return; }
+    if (blitDummied) { blitDummied = false; video_blit_complete(bitmap); return; }
     directBlitting = true;
-    rendererWindow->blit(x, y, w, h);
+    rendererWindow->blit(bitmap, x, y, w, h);
     directBlitting = false;
 }
 
 // called from blitter thread
 void
-RendererStack::blitCommon(int x, int y, int w, int h)
+RendererStack::blitCommon(bitmap_t *bitmap, int x, int y, int w, int h)
 {
-    if ((x < 0) || (y < 0) || (w <= 0) || (h <= 0) || (w > 2048) || (h > 2048) || (buffer32 == NULL) || imagebufs.empty() || std::get<std::atomic_flag *>(imagebufs[currentBuf])->test_and_set() || blitDummied) {
-        video_blit_complete();
+    if ((x < 0) || (y < 0) || (w <= 0) || (h <= 0) || (w > 2048) || (h > 2048) || (bitmap == NULL) || imagebufs.empty() || std::get<std::atomic_flag *>(imagebufs[currentBuf])->test_and_set() || blitDummied) {
+        video_blit_complete(bitmap);
         return;
     }
     sx = x;
@@ -426,13 +426,13 @@ RendererStack::blitCommon(int x, int y, int w, int h)
     uint8_t *imagebits = std::get<uint8_t *>(imagebufs[currentBuf]);
     for (int y1 = y; y1 < (y + h); y1++) {
         auto scanline = imagebits + (y1 * rendererWindow->getBytesPerRow()) + (x * 4);
-        video_copy(scanline, &(buffer32->line[y1][x]), w * 4);
+        video_copy(scanline, &(bitmap->line[y1][x]), w * 4);
     }
 
     if (screenshots) {
         video_screenshot((uint32_t *) imagebits, x, y, 2048);
     }
-    video_blit_complete();
+    video_blit_complete(bitmap);
     emit blitToRenderer(currentBuf, sx, sy, sw, sh);
     currentBuf = (currentBuf + 1) % imagebufs.size();
 }

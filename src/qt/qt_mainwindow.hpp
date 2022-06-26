@@ -8,6 +8,10 @@
 
 #include <memory>
 
+extern "C" {
+#include <86box/video.h>
+}
+
 class MediaMenu;
 
 namespace Ui {
@@ -26,7 +30,7 @@ public:
 
     void showMessage(const QString& header, const QString& message);
     void getTitle(wchar_t* title);
-    void blitToWidget(int x, int y, int w, int h);
+    void blitToWidget(bitmap_t *bitmap, int x, int y, int w, int h);
     QSize getRenderWidgetSize();
     void setSendKeyboardInput(bool enabled);
 signals:

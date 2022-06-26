@@ -75,7 +75,11 @@
 #include <minitrace/minitrace.h>
 
 volatile int	screenshots = 0;
+
 bitmap_t	*buffer32 = NULL;
+bitmap_t    *buffer[2];
+uint8_t     curr_buff = 0;
+
 uint8_t		fontdat[2048][8];		/* IBM CGA font */
 uint8_t		fontdatm[2048][16];		/* IBM MDA font */
 uint8_t		fontdatw[512][32];		/* Wyse700 font */
@@ -254,16 +258,16 @@ const uint32_t shade[5][256] =
 static struct {
     int		x, y, w, h;
     int		busy;
-    int		buffer_in_use;
+    int		buffer_in_use[2];
 
     thread_t	*blit_thread;
     event_t	*wake_blit_thread;
     event_t	*blit_complete;
-    event_t	*buffer_not_in_use;
+    event_t	*buffer_not_in_use[2];
 }		blit_data;
 
 
-static void (*blit_func)(int x, int y, int w, int h);
+static void (*blit_func)(bitmap_t *bitmap, int x, int y, int w, int h);
 
 
 #ifdef ENABLE_VIDEO_LOG
@@ -287,18 +291,24 @@ video_log(const char *fmt, ...)
 
 
 void
-video_setblit(void(*blit)(int,int,int,int))
+video_setblit(void(*blit)(bitmap_t*,int,int,int,int))
 {
     blit_func = blit;
 }
 
 
 void
-video_blit_complete(void)
+video_blit_complete(bitmap_t *bitmap)
 {
-    blit_data.buffer_in_use = 0;
-
-    thread_set_event(blit_data.buffer_not_in_use);
+    if (bitmap == buffer[0]) {
+        blit_data.buffer_in_use[0] = 0;
+        thread_set_event(blit_data.buffer_not_in_use[0]);
+    } else if (bitmap == buffer[1]) {
+        blit_data.buffer_in_use[1] = 0;
+        thread_set_event(blit_data.buffer_not_in_use[1]);
+    } else {
+        fatal("blit completed with some weird buffer");
+    }
 }
 
 
@@ -314,9 +324,9 @@ video_wait_for_blit(void)
 void
 video_wait_for_buffer(void)
 {
-    while (blit_data.buffer_in_use)
-	thread_wait_event(blit_data.buffer_not_in_use, -1);
-    thread_reset_event(blit_data.buffer_not_in_use);
+    while (blit_data.buffer_in_use[curr_buff])
+	thread_wait_event(blit_data.buffer_not_in_use[curr_buff], -1);
+    thread_reset_event(blit_data.buffer_not_in_use[curr_buff]);
 }
 
 
@@ -457,10 +467,14 @@ void blit_thread(void *param)
     while (thread_run) {
 	thread_wait_event(blit_data.wake_blit_thread, -1);
 	thread_reset_event(blit_data.wake_blit_thread);
+
+    buffer32 = buffer[!!curr_buff];
+    curr_buff = !!curr_buff;
+
 	MTR_BEGIN("video", "blit_thread");
 
 	if (blit_func)
-		blit_func(blit_data.x, blit_data.y, blit_data.w, blit_data.h);
+		blit_func(buffer[!!curr_buff], blit_data.x, blit_data.y, blit_data.w, blit_data.h);
 
 	blit_data.busy = 0;
 
@@ -481,7 +495,7 @@ video_blit_memtoscreen(int x, int y, int w, int h)
     video_wait_for_blit();
 
     blit_data.busy = 1;
-    blit_data.buffer_in_use = 1;
+    blit_data.buffer_in_use[curr_buff] = 1;
     blit_data.x = x;
     blit_data.y = y;
     blit_data.w = w;
@@ -833,7 +847,10 @@ video_init(void)
     }
 
     /* Account for overscan. */
-    buffer32 = create_bitmap(2048, 2048);
+    buffer[0] = create_bitmap(2048, 2048);
+    buffer[1] = create_bitmap(2048, 2048);
+    buffer32  = buffer[0];
+    curr_buff = 0;
 
     for (c = 0; c < 64; c++) {
 	cgapal[c + 64].r = (((c & 4) ? 2 : 0) | ((c & 0x10) ? 1 : 0)) * 21;
@@ -880,7 +897,8 @@ video_init(void)
 
     blit_data.wake_blit_thread = thread_create_event();
     blit_data.blit_complete = thread_create_event();
-    blit_data.buffer_not_in_use = thread_create_event();
+    blit_data.buffer_not_in_use[0] = thread_create_event();
+    blit_data.buffer_not_in_use[1] = thread_create_event();
     thread_run = 1;
     blit_data.blit_thread = thread_create(blit_thread, NULL);
 }
@@ -892,7 +910,8 @@ video_close(void)
     thread_run = 0;
     thread_set_event(blit_data.wake_blit_thread);
     thread_wait(blit_data.blit_thread);
-    thread_destroy_event(blit_data.buffer_not_in_use);
+    thread_destroy_event(blit_data.buffer_not_in_use[0]);
+    thread_destroy_event(blit_data.buffer_not_in_use[1]);
     thread_destroy_event(blit_data.blit_complete);
     thread_destroy_event(blit_data.wake_blit_thread);
 
@@ -902,7 +921,8 @@ video_close(void)
     free(video_8togs);
     free(video_6to8);
 
-    destroy_bitmap(buffer32);
+    destroy_bitmap(buffer[0]);
+    destroy_bitmap(buffer[1]);
 
     if (fontdatksc5601) {
 	free(fontdatksc5601);

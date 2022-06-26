@@ -128,18 +128,18 @@ sdl_stretch(int *w, int *h, int *x, int *y)
 
 
 void
-sdl_blit_shim(int x, int y, int w, int h)
+sdl_blit_shim(bitmap_t *bitmap, int x, int y, int w, int h)
 {
     params.x = x;
     params.y = y;
     params.w = w;
     params.h = h;
-    if (!(!sdl_enabled || (x < 0) || (y < 0) || (w <= 0) || (h <= 0) || (w > 2048) || (h > 2048) || (buffer32 == NULL) || (sdl_render == NULL) || (sdl_tex == NULL)))
-	video_copy(interpixels, &(buffer32->line[y][x]), h * 2048 * sizeof(uint32_t));
+    if (!(!sdl_enabled || (x < 0) || (y < 0) || (w <= 0) || (h <= 0) || (w > 2048) || (h > 2048) || (bitmap == NULL) || (sdl_render == NULL) || (sdl_tex == NULL)))
+	video_copy(interpixels, &(bitmap->line[y][x]), h * 2048 * sizeof(uint32_t));
     if (screenshots)
 	video_screenshot(interpixels, 0, 0, 2048);
     blitreq = 1;
-    video_blit_complete();
+    video_blit_complete(bitmap);
 }
 
 void ui_window_title_real();
@@ -178,7 +178,7 @@ sdl_blit(int x, int y, int w, int h)
 {
     SDL_Rect r_src;
 
-    if (!sdl_enabled || (x < 0) || (y < 0) || (w <= 0) || (h <= 0) || (w > 2048) || (h > 2048) || (buffer32 == NULL) || (sdl_render == NULL) || (sdl_tex == NULL)) {
+    if (!sdl_enabled || (x < 0) || (y < 0) || (w <= 0) || (h <= 0) || (w > 2048) || (h > 2048) || (bitmap == NULL) || (sdl_render == NULL) || (sdl_tex == NULL)) {
     r_src.x = x;
     r_src.y = y;
     r_src.w = w;

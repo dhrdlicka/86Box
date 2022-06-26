@@ -167,25 +167,25 @@ vnc_display(rfbClientPtr cl)
 
 
 static void
-vnc_blit(int x, int y, int w, int h)
+vnc_blit(bitmap_t *bitmap, int x, int y, int w, int h)
 {
     uint32_t *p;
     int yy;
 
-    if ((x < 0) || (y < 0) || (w <= 0) || (h <= 0) || (w > 2048) || (h > 2048) || (buffer32 == NULL))
+    if ((x < 0) || (y < 0) || (w <= 0) || (h <= 0) || (w > 2048) || (h > 2048) || (bitmap == NULL))
 	return;
 
     for (yy=0; yy<h; yy++) {
 	p = (uint32_t *)&(((uint32_t *)rfb->frameBuffer)[yy*VNC_MAX_X]);
 
 	if ((y+yy) >= 0 && (y+yy) < VNC_MAX_Y)
-		video_copy(p, &(buffer32->line[yy]), w*sizeof(uint32_t));
+		video_copy(p, &(bitmap->line[yy]), w*sizeof(uint32_t));
     }
 
     if (screenshots)
 	video_screenshot((uint32_t *) rfb->frameBuffer, 0, 0, VNC_MAX_X);
 
-    video_blit_complete();
+    video_blit_complete(bitmap);
 
     if (! updatingSize)
 	rfbMarkRectAsModified(rfb, 0,0, allowedX,allowedY);

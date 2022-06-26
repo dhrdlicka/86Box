@@ -299,28 +299,28 @@ sdl_stretch(int *w, int *h, int *x, int *y)
 }
 
 static void
-sdl_blit(int x, int y, int w, int h)
+sdl_blit(bitmap_t *bitmap, int x, int y, int w, int h)
 {
     SDL_Rect r_src;
     void *pixeldata;
     int ret, pitch;
 
-    if (!sdl_enabled || (x < 0) || (y < 0) || (w <= 0) || (h <= 0) || (w > 2048) || (h > 2048) || (buffer32 == NULL) || (sdl_render == NULL) || (sdl_tex == NULL)) {
-        video_blit_complete();
+    if (!sdl_enabled || (x < 0) || (y < 0) || (w <= 0) || (h <= 0) || (w > 2048) || (h > 2048) || (bitmap == NULL) || (sdl_render == NULL) || (sdl_tex == NULL)) {
+        video_blit_complete(bitmap);
         return;
     }
 
     SDL_LockMutex(sdl_mutex);
     SDL_LockTexture(sdl_tex, 0, &pixeldata, &pitch);
 
-    video_copy(pixeldata, &(buffer32->line[y][x]), h * (2048) * sizeof(uint32_t));
+    video_copy(pixeldata, &(bitmap->line[y][x]), h * (2048) * sizeof(uint32_t));
 
     if (screenshots)
         video_screenshot((uint32_t *) pixeldata, 0, 0, (2048));
 
     SDL_UnlockTexture(sdl_tex);
 
-    video_blit_complete();
+    video_blit_complete(bitmap);
 
     SDL_RenderClear(sdl_render);
 
