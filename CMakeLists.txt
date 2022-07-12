@@ -127,7 +127,7 @@ set(CMAKE_FIND_PACKAGE_PREFER_CONFIG ON)
 #      ------       -----------                                                     ----
 option(RELEASE      "Release build"                                                 OFF)
 option(DYNAREC      "Dynamic recompiler"                                            ON)
-option(OPENAL       "OpenAL"                                                        OFF)
+option(OPENAL       "OpenAL"                                                        ON)
 option(RTMIDI       "RtMidi"                                                        ON)
 option(FLUIDSYNTH   "FluidSynth"                                                    ON)
 option(MUNT         "MUNT"                                                          ON)
