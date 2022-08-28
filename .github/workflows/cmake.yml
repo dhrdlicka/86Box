@@ -170,7 +170,7 @@ jobs:
         run: dir "C:/Program Files/Microsoft Visual Studio/2022/*/VC/Tools/MSVC/*/include" -include stdatomic.h -recurse | del
       - name: Configure CMake
         run: >
-          cmake -G Ninja -S . -B build --preset ${{ matrix.build.preset }}
+          cmake -G Ninja -S . -B build --preset ${{ matrix.build.preset }} --debug-find
           --toolchain C:/vcpkg/scripts/buildsystems/vcpkg.cmake
           -D NEW_DYNAREC=${{ matrix.dynarec.new }} -D QT=${{ matrix.ui.qt }}
           -D VCPKG_CHAINLOAD_TOOLCHAIN_FILE=${{ github.workspace }}/${{ matrix.target.toolchain }}
